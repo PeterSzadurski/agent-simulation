@@ -1,6 +1,11 @@
-#include <iostream>
+#include "Engine.h"
+
 int main()
 {
-    std::cout << "Hello world\n";
+    Engine engine(12345);
+    while (engine.getTick() < 10)
+    {
+        engine.simulate();
+    }
     return 0;
 }

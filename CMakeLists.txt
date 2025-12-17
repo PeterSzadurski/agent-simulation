@@ -4,6 +4,9 @@ set(CMAKE_CXX_STANDARD 23)
 
 
 add_executable(${PROJECT_NAME}
+   src/Engine.cpp
+   src/Component.cpp
+   src/EntityManager.cpp
    src/main.cpp
 )
 
