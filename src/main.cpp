@@ -2,8 +2,8 @@
 
 int main()
 {
-    Engine engine(12345);
-    while (engine.getTick() < 10)
+    Engine engine(12345, 25, 25);
+    while (engine.getTick() < 1000000)
     {
         engine.simulate();
     }
