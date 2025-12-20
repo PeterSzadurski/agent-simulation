@@ -38,7 +38,7 @@ void EntityManager::EntityManager::update()
 
 std::shared_ptr<Entity> EntityManager::addEntity(entity_type type)
 {
-    auto e = std::shared_ptr<Entity>(new Entity(type, m_totalEntities++));
+    auto e = std::shared_ptr<Entity>(new Entity(type, ++m_totalEntities));
     m_toAdd.push_back(e);
     return e;
 }

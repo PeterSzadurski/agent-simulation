@@ -40,3 +40,28 @@ CHunger::CHunger(int hunger, int hungerTick) : m_currentHunger(hunger), m_hunger
 {
     exists = true;
 }
+
+CKnowledge::CKnowledge(bool doesExist)
+{
+    exists = doesExist;
+}
+
+CLineOfSight::CLineOfSight(int sight) : m_sight(sight)
+{
+    exists = true;
+}
+
+const int CLineOfSight::sight() const
+{
+    return m_sight;
+}
+
+CState::CState(STATE state) : state(state)
+{
+    exists = true;
+}
+
+void CKnowledge::update(Cords cords, entity_type type)
+{
+    // PlantSet.erase(cords);
+}

@@ -1,5 +1,7 @@
 #pragma once
-#include "Cords.h"
+#include "utility.hpp"
+#include <map>
+
 class Component
 {
 public:
@@ -31,6 +33,33 @@ public:
     bool isStarved();
     CHunger();
     CHunger(int hunger, int hungerTick);
+};
+
+class CKnowledge : public Component
+{
+    std::map<Cords, Seen> m_reported_positions;
+
+public:
+    CKnowledge() = default;
+    CKnowledge(bool exists);
+    void update(Cords cords, entity_type type);
+};
+
+struct CState : public Component
+{
+    STATE state;
+    CState() = default;
+    CState(STATE state);
+};
+
+class CLineOfSight : public Component
+{
+    int m_sight = 0;
+
+public:
+    CLineOfSight() = default;
+    CLineOfSight(int sight);
+    const int sight() const;
 };
 
 class CInventory : public Component

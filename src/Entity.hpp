@@ -4,12 +4,7 @@
 #include <string>
 
 class EntityManager;
-using ComponentTuple = std::tuple<CPosition, CStats, CHunger>;
-enum entity_type
-{
-    empty,
-    npc
-};
+using ComponentTuple = std::tuple<CPosition, CStats, CHunger, CLineOfSight, CState, CKnowledge>;
 
 class Entity
 {
