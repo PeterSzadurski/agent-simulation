@@ -1,18 +1,6 @@
 #include "Engine.h"
 #include <iostream>
 
-void Engine::moveRand(std::shared_ptr<Entity> e)
-{
-    auto &pos = e->get<CPosition>();
-    std::uniform_int_distribution<int> dist(-1, 1);
-    int x = dist(m_rng);
-    int y = dist(m_rng);
-    if (m_grid.move(e, x, y))
-    {
-        std::cout << "X: " << pos.cords.x << " | Y: " << pos.cords.y << "\n";
-    }
-}
-
 void Engine::hungerSystem(std::shared_ptr<Entity> e)
 {
     if (e->has<CHunger>())
@@ -24,6 +12,16 @@ void Engine::hungerSystem(std::shared_ptr<Entity> e)
             m_grid.remove(e);
             return;
         }
+        if (hunger.isHungry())
+        {
+            if (!e->get<CPosition>().destination.has_value())
+            {
+                if (m_knowledge.findNearestMeal(e))
+                {
+                    e->get<CState>().state = STATE::walking_to;
+                }
+            }
+        }
         hunger.hungerTick();
     }
 }
@@ -34,15 +32,31 @@ void Engine::simulate()
     {
         auto &state = e->get<CState>();
         hungerSystem(e);
+    }
+
+    for (auto e : m_entities.getEntities())
+    {
+        auto &state = e->get<CState>();
+        if (e->isAlive())
+        {
+            if (state.exists)
+            {
+                if (e->has<CLineOfSight>())
+                {
+                    m_knowledge.updateLineOfSight(e, m_tick);
+                }
+            }
+        }
+    }
+
+    for (auto e : m_entities.getEntities())
+    {
+        auto &state = e->get<CState>();
         if (e->isAlive())
         {
             if (state.exists)
             {
                 movementSystem(e);
-                if (e->has<CLineOfSight>())
-                {
-                    m_knowledge.updateLineOfSight(e);
-                }
             }
         }
         else
@@ -50,11 +64,22 @@ void Engine::simulate()
             m_grid.remove(e);
         }
     }
+
+    for (auto e : m_entities.getEntities())
+    {
+        auto &state = e->get<CState>();
+        if (e->isAlive())
+        {
+            if (state.exists)
+            {
+            }
+        }
+    }
     m_entities.update();
     m_tick++;
 }
 
-Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), m_grid(width, height), m_knowledge(m_grid)
+Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), m_grid(width, height), m_knowledge(m_grid), m_movement(m_grid)
 {
     {
         auto npc = m_entities.addEntity(entity_type::npc);
@@ -88,9 +113,24 @@ void Engine::movementSystem(std::shared_ptr<Entity> e)
     switch (state.state)
     {
     case STATE::wander:
-        moveRand(e);
+        // moveRand(e);
+        m_movement.moveRand(e, m_rng);
         break;
-
+    case STATE::walking_to:
+        if (!m_movement.nextToDestination(e))
+        {
+            m_movement.moveTo(e);
+        }
+        else
+        {
+            // eat food reset hunger
+            auto &pos = e->get<CPosition>();
+            m_grid.at(pos.destination.value().x, pos.destination.value().y)->setAlive(false);
+            e->get<CHunger>().reset();
+            pos.destination.reset();
+            state.state = STATE::wander;
+        }
+        break;
     default:
         break;
     }

@@ -1,5 +1,6 @@
 #pragma once
 #include "utility.hpp"
+#include <optional>
 #include <map>
 
 class Component
@@ -12,6 +13,7 @@ public:
 struct CPosition : public Component
 {
     Cords cords;
+    std::optional<Cords> destination;
     CPosition() = default;
     CPosition(int x, int y);
 };
@@ -33,16 +35,17 @@ public:
     bool isStarved();
     CHunger();
     CHunger(int hunger, int hungerTick);
+    void reset();
 };
 
 class CKnowledge : public Component
 {
-    std::map<Cords, Seen> m_reported_positions;
 
 public:
+    std::map<Cords, Seen> m_reported_positions;
+    std::optional<Cords> m_closetst_food;
     CKnowledge() = default;
     CKnowledge(bool exists);
-    void update(Cords cords, entity_type type);
 };
 
 struct CState : public Component

@@ -1,3 +1,4 @@
+#include <math.h>
 enum STATE
 {
     idle,
@@ -15,7 +16,7 @@ enum entity_type
 struct Cords
 {
     int x = 0, y = 0;
-    Cords() { x = 0, y = 0; }
+    Cords() { x = -1, y = -1; }
     Cords(int x, int y) : x(x), y(y) {};
 
     bool operator<(const Cords &other) const
@@ -23,6 +24,22 @@ struct Cords
         if (x != other.x)
             return x < other.x;
         return y < other.y;
+    }
+    static Cords normal(Cords pos, Cords dest)
+    {
+        int dX = pos.x - dest.x;
+        int dY = pos.y - dest.y;
+
+        if (dX != 0)
+        {
+            dX = dX / abs(dX);
+        }
+        if (dY != 0)
+        {
+            dY = dY / abs(dY);
+        }
+
+        return Cords(dX, dY);
     }
 };
 
@@ -33,4 +50,5 @@ struct Seen
     Seen(entity_type type, int tick) : type(type), tick(tick)
     {
     }
+    Seen() {}
 };

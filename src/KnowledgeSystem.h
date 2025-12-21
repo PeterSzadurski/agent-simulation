@@ -4,9 +4,11 @@
 class KnowledgeSystem
 {
 private:
-    Grid m_grid;
+    const Grid &m_grid;
+    void updateEntityKnowledge(CKnowledge &knowledge, const int currentTick, Cords cords, entity_type type);
 
 public:
     KnowledgeSystem(const Grid &grid);
-    bool updateLineOfSight(std::shared_ptr<Entity> entity);
+    bool updateLineOfSight(std::shared_ptr<Entity> entity, const int currentTick);
+    bool findNearestMeal(std::shared_ptr<Entity> entity);
 };

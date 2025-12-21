@@ -8,6 +8,7 @@ Component::Component()
 CPosition::CPosition(int x, int y)
 {
     cords = Cords(x, y);
+    // destination = std::optional<Cords>;
     exists = true;
 }
 
@@ -29,6 +30,12 @@ void CHunger::hungerTick()
         ++m_currentHunger;
         m_hungerTick = 10;
     }
+}
+
+void CHunger::reset()
+{
+    m_currentHunger = 0;
+    m_hungerTick = 10;
 }
 
 bool CHunger::isStarved()
@@ -59,9 +66,4 @@ const int CLineOfSight::sight() const
 CState::CState(STATE state) : state(state)
 {
     exists = true;
-}
-
-void CKnowledge::update(Cords cords, entity_type type)
-{
-    // PlantSet.erase(cords);
 }

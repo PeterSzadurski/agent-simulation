@@ -3,7 +3,12 @@ KnowledgeSystem::KnowledgeSystem(const Grid &grid) : m_grid(grid)
 {
 }
 
-bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity)
+void KnowledgeSystem::updateEntityKnowledge(CKnowledge &knowledge, const int currentTick, Cords cords, entity_type type)
+{
+    knowledge.m_reported_positions[cords] = Seen(type, currentTick);
+}
+
+bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const int currentTick)
 {
     bool foundSomething = false;
     auto &pos = entity->get<CPosition>();
@@ -13,15 +18,38 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity)
     {
         for (int y = pos.cords.y - lineOfSight; y < pos.cords.y + lineOfSight; ++y)
         {
-            if ((x != pos.cords.x && y != pos.cords.y) && m_grid.inBounds(x, y) && m_grid.at(x, y) != nullptr)
+            if ((x != pos.cords.x && y != pos.cords.y) && m_grid.inBounds(x, y))
             {
-                // something is within line of sight
-                auto thing = m_grid.at(x, y);
-                entity->get<CKnowledge>().update(thing->get<CPosition>().cords, thing->type());
-                foundSomething = true;
+                Cords cords = Cords(x, y);
+                if (m_grid.at(x, y) == nullptr && knowledge.m_reported_positions.contains(cords))
+                {
+                    updateEntityKnowledge(knowledge, currentTick, cords, entity_type::empty);
+                }
+                else if (m_grid.at(x, y) != nullptr)
+                {
+                    auto seenEntity = m_grid.at(x, y);
+                    updateEntityKnowledge(knowledge, currentTick, cords, seenEntity->type());
+                    foundSomething = true;
+                }
             }
         }
     }
 
     return foundSomething;
+}
+
+bool KnowledgeSystem::findNearestMeal(std::shared_ptr<Entity> entity)
+{
+    auto &pos = entity->get<CPosition>();
+    auto &knowledge = entity->get<CKnowledge>();
+
+    for (const auto &[key, value] : knowledge.m_reported_positions)
+    {
+        if (knowledge.m_reported_positions[key].type == entity_type::meal)
+        {
+            pos.destination = key;
+            return true;
+        }
+    }
+    return false;
 }

@@ -2,6 +2,7 @@
 #include <random>
 #include "Grid.h"
 #include "KnowledgeSystem.h"
+#include "MovementSystem.h"
 class Engine
 {
     std::mt19937 m_rng;
@@ -9,7 +10,7 @@ class Engine
     EntityManager m_entities;
     Grid m_grid;
     KnowledgeSystem m_knowledge;
-    void moveRand(std::shared_ptr<Entity> e);
+    MovementSystem m_movement;
     void hungerSystem(std::shared_ptr<Entity> e);
     void movementSystem(std::shared_ptr<Entity> e);
 

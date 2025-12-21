@@ -7,6 +7,7 @@ add_executable(${PROJECT_NAME}
    src/Grid.cpp
    src/Engine.cpp
    src/KnowledgeSystem.cpp
+   src/MovementSystem.cpp
    src/Component.cpp
    src/EntityManager.cpp
    src/main.cpp
