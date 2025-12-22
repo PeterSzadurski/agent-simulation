@@ -8,7 +8,12 @@ Component::Component()
 CPosition::CPosition(int x, int y)
 {
     cords = Cords(x, y);
-    // destination = std::optional<Cords>;
+    exists = true;
+}
+
+CDesination::CDesination(int x, int y)
+{
+    cords = Cords(x, y);
     exists = true;
 }
 

@@ -15,16 +15,6 @@ void Engine::hungerSystem()
                 e->setAlive(false);
                 return;
             }
-            if (hunger.isHungry())
-            {
-                if (!e->get<CPosition>().destination.has_value())
-                {
-                    if (m_knowledge.findNearestMeal(e))
-                    {
-                        e->get<CState>().state = STATE::walking_to;
-                    }
-                }
-            }
             hunger.hungerTick();
             if (oldHungerValue != hunger.getHunger())
                 spdlog::info("[Tick: {:08d}] ID:{:08d} has ({:02d}) hunger", m_tick, e->id(), hunger.getHunger());
@@ -36,6 +26,7 @@ void Engine::simulate()
 {
 
     lineOfSightSystem();
+    actionSystem();
     movementSystem();
     hungerSystem();
     cleanGrid();
@@ -95,14 +86,6 @@ void Engine::movementSystem()
             {
                 moved = m_movement.moveTo(e);
             }
-            else
-            {
-                // eat food reset hunger
-                m_grid.at(pos.destination.value().x, pos.destination.value().y)->setAlive(false);
-                e->get<CHunger>().reset();
-                pos.destination.reset();
-                state.state = STATE::wander;
-            }
             break;
         default:
             break;
@@ -114,8 +97,35 @@ void Engine::movementSystem()
     }
 }
 
-void Engine::actionSystem(std::shared_ptr<Entity> e)
+void Engine::actionSystem()
 {
+    for (auto e : m_entities.getEntities())
+    {
+        if (e->has<CState>() && e->isAlive())
+        {
+            auto &state = e->get<CState>();
+            auto &hunger = e->get<CHunger>();
+            if (hunger.isHungry())
+            {
+                if (m_knowledge.findNearestMeal(e) && e->has<CDesination>())
+                {
+                    if (m_movement.nextToDestination(e))
+                    {
+                        // eat food
+                        auto &dest = e->get<CDesination>();
+                        m_grid.at(dest.cords.x, dest.cords.y)->setAlive(false);
+                        hunger.reset();
+                        state = STATE::wander;
+                        e->remove<CDesination>();
+                    }
+                    else
+                    {
+                        state = STATE::walking_to;
+                    }
+                }
+            }
+        }
+    }
 }
 
 void Engine::lineOfSightSystem()

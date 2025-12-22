@@ -16,14 +16,19 @@ bool MovementSystem::moveRand(std::shared_ptr<Entity> e, std::mt19937 &rng)
 bool MovementSystem::moveTo(std::shared_ptr<Entity> e)
 {
     auto &pos = e->get<CPosition>();
-    Cords direction = Cords::normal(pos.destination.value(), pos.cords);
+    Cords direction = Cords::normal(e->get<CDesination>().cords, pos.cords);
     return m_grid.move(e, direction.x, direction.y);
 }
 
 bool MovementSystem::nextToDestination(std::shared_ptr<Entity> e)
 {
     auto &pos = e->get<CPosition>();
-    int x = pos.cords.x - pos.destination.value().x;
-    int y = pos.cords.y - pos.destination.value().y;
-    return x <= 1 && y <= 1;
+    if (e->has<CDesination>())
+    {
+        auto &dest = e->get<CDesination>();
+        int x = pos.cords.x - dest.cords.x;
+        int y = pos.cords.y - dest.cords.y;
+        return x <= 1 && y <= 1;
+    }
+    return false;
 }

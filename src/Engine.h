@@ -13,7 +13,7 @@ class Engine
     MovementSystem m_movement;
     void hungerSystem();
     void movementSystem();
-    void actionSystem(std::shared_ptr<Entity> e);
+    void actionSystem();
     void lineOfSightSystem();
     void cleanGrid();
 

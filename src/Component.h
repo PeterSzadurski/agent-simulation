@@ -13,9 +13,15 @@ public:
 struct CPosition : public Component
 {
     Cords cords;
-    std::optional<Cords> destination;
     CPosition() = default;
     CPosition(int x, int y);
+};
+
+struct CDesination : public Component
+{
+    Cords cords;
+    CDesination() = default;
+    CDesination(int x, int y);
 };
 
 struct CStats : public Component

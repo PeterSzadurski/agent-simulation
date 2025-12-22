@@ -47,7 +47,7 @@ bool KnowledgeSystem::findNearestMeal(std::shared_ptr<Entity> entity)
     {
         if (knowledge.m_reported_positions[key].type == entity_type::meal)
         {
-            pos.destination = key;
+            entity->add<CDesination>(key.x, key.y);
             return true;
         }
     }
