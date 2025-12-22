@@ -48,6 +48,11 @@ CHunger::CHunger(int hunger, int hungerTick) : m_currentHunger(hunger), m_hunger
     exists = true;
 }
 
+const int CHunger::getHunger() const
+{
+    return m_currentHunger;
+}
+
 CKnowledge::CKnowledge(bool doesExist)
 {
     exists = doesExist;

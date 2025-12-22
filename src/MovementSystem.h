@@ -7,7 +7,7 @@ class MovementSystem
 
 public:
     MovementSystem(Grid &grid);
-    void moveRand(std::shared_ptr<Entity> e, std::mt19937 &rng);
-    void moveTo(std::shared_ptr<Entity> e);
+    bool moveRand(std::shared_ptr<Entity> e, std::mt19937 &rng);
+    bool moveTo(std::shared_ptr<Entity> e);
     bool nextToDestination(std::shared_ptr<Entity> e);
 };

@@ -35,6 +35,7 @@ public:
     bool isStarved();
     CHunger();
     CHunger(int hunger, int hungerTick);
+    const int getHunger() const;
     void reset();
 };
 

@@ -11,8 +11,11 @@ class Engine
     Grid m_grid;
     KnowledgeSystem m_knowledge;
     MovementSystem m_movement;
-    void hungerSystem(std::shared_ptr<Entity> e);
-    void movementSystem(std::shared_ptr<Entity> e);
+    void hungerSystem();
+    void movementSystem();
+    void actionSystem(std::shared_ptr<Entity> e);
+    void lineOfSightSystem();
+    void cleanGrid();
 
 public:
     Engine(u_int32_t seed, int width, int height);

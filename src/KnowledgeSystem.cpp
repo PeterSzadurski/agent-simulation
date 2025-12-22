@@ -18,7 +18,7 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
     {
         for (int y = pos.cords.y - lineOfSight; y < pos.cords.y + lineOfSight; ++y)
         {
-            if ((x != pos.cords.x && y != pos.cords.y) && m_grid.inBounds(x, y))
+            if ((x != pos.cords.x || y != pos.cords.y) && m_grid.inBounds(x, y))
             {
                 Cords cords = Cords(x, y);
                 if (m_grid.at(x, y) == nullptr && knowledge.m_reported_positions.contains(cords))

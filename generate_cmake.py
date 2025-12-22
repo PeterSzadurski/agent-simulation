@@ -6,6 +6,7 @@ CMAKE_VERSION = "4.0"
 CPP_VERSION = "23"
 
 LINK_LIBS = [
+    "fmt", "spdlog"
  ]
 
 INCLUDE_DIRS = []

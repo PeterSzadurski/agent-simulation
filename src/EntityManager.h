@@ -3,6 +3,8 @@
 #include <memory>
 #include <map>
 #include "Entity.hpp"
+#include <spdlog/spdlog.h>
+
 typedef std::vector<std::shared_ptr<Entity>> EntityVec;
 typedef std::map<entity_type, EntityVec> EntityMap;
 
