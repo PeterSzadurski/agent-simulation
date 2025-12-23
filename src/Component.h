@@ -74,12 +74,16 @@ public:
 
 class CInventory : public Component
 {
-    int food = 0;
-    int maxFood = 10;
+    int m_food = 0;
+    int m_maxFood = 10;
+    int m_maxMeal = 0;
+    int m_meal = 0;
 
 public:
     CInventory() = default;
-    CInventory(int food);
+    CInventory(int maxMeal);
 
-    const int getFood();
+    const int mealCount();
+    const int maxMeal();
+    bool adjustMeal(int value);
 };

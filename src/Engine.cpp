@@ -40,12 +40,22 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
     {
         auto npc = m_entities.addEntity(entity_type::npc);
         npc->add<CPosition>(0, 0);
-        npc->add<CHunger>(0, 10);
+        npc->add<CHunger>(0, 1000);
         npc->add<CState>(STATE::wander);
         npc->add<CLineOfSight>(3);
         npc->add<CKnowledge>(true);
+        npc->add<CInventory>(1);
         m_grid.placeRandom(npc, m_rng);
     }
+    {
+        auto food = m_entities.addEntity(entity_type::meal);
+        food->add<CPosition>(0, 0);
+        if (m_grid.placeRandom(food, m_rng))
+        {
+            spdlog::info("[Tick: {:08d}] Placed FOOD at ({:02d}, {:02d})", m_tick, food->get<CPosition>().cords.x, food->get<CPosition>().cords.y);
+        }
+    }
+
     {
         auto food = m_entities.addEntity(entity_type::meal);
         food->add<CPosition>(0, 0);
@@ -78,7 +88,6 @@ void Engine::movementSystem()
         switch (state.state)
         {
         case STATE::wander:
-            // moveRand(e);
             moved = m_movement.moveRand(e, m_rng);
             break;
         case STATE::walking_to:
@@ -105,22 +114,41 @@ void Engine::actionSystem()
         {
             auto &state = e->get<CState>();
             auto &hunger = e->get<CHunger>();
-            if (hunger.isHungry())
+            auto &inventory = e->get<CInventory>();
+
+            if (inventory.mealCount() < inventory.maxMeal())
             {
+                // room to add more meals to inventory
                 if (m_knowledge.findNearestMeal(e) && e->has<CDesination>())
                 {
                     if (m_movement.nextToDestination(e))
                     {
-                        // eat food
+                        // pick up the food
                         auto &dest = e->get<CDesination>();
                         m_grid.at(dest.cords.x, dest.cords.y)->setAlive(false);
-                        hunger.reset();
                         state = STATE::wander;
                         e->remove<CDesination>();
+                        if (inventory.adjustMeal(1))
+                        {
+                            spdlog::info("[Tick: {:08d}] ID:{:08d} added (1) meal to Inventory.", m_tick, e->id());
+                        }
                     }
                     else
                     {
                         state = STATE::walking_to;
+                    }
+                }
+            }
+
+            if (hunger.isHungry())
+            {
+                if (inventory.mealCount() > 0)
+                {
+                    // eat inventory meal
+                    hunger.reset();
+                    if (inventory.adjustMeal(-1))
+                    {
+                        spdlog::info("[Tick: {:08d}] ID:{:08d} ate (1) from Inventory.", m_tick, e->id());
                     }
                 }
             }

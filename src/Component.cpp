@@ -77,3 +77,28 @@ CState::CState(STATE state) : state(state)
 {
     exists = true;
 }
+
+CInventory::CInventory(int maxMeal) : m_maxMeal(maxMeal)
+{
+    exists = true;
+}
+
+const int CInventory::mealCount()
+{
+    return m_meal;
+}
+
+const int CInventory::maxMeal()
+{
+    return m_maxMeal;
+}
+
+bool CInventory::adjustMeal(int value)
+{
+    if (m_meal + value > m_maxMeal || m_meal + value < 0)
+    {
+        return false;
+    }
+    m_meal += value;
+    return true;
+}

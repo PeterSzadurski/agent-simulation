@@ -4,7 +4,7 @@
 #include <string>
 
 class EntityManager;
-using ComponentTuple = std::tuple<CPosition, CStats, CHunger, CLineOfSight, CState, CKnowledge, CDesination>;
+using ComponentTuple = std::tuple<CPosition, CStats, CHunger, CLineOfSight, CState, CKnowledge, CDesination, CInventory>;
 
 class Entity
 {

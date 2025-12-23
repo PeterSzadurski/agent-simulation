@@ -22,7 +22,7 @@ void Grid::removeEmpty(int idx)
     int pos = m_sparse[idx];
 
     int last = m_dense.back();
-    m_dense[idx] = last;
+    m_dense[pos] = last;
     m_sparse[last] = pos;
 
     m_dense.pop_back();
@@ -106,7 +106,8 @@ void Grid::remove(std::shared_ptr<Entity> entity)
     if (inBounds(pos.cords.x, pos.cords.y))
     {
         at(pos.cords.x, pos.cords.y) = nullptr;
-        m_sparse.push_back(getIdx(pos.cords.x, pos.cords.y));
+        addEmpty(getIdx(pos.cords.x, pos.cords.y));
+        // m_sparse.push_back(getIdx(pos.cords.x, pos.cords.y));
     }
 }
 
