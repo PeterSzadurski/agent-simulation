@@ -102,3 +102,23 @@ bool CInventory::adjustMeal(int value)
     m_meal += value;
     return true;
 }
+
+const int CInventory::foodCount()
+{
+    return m_food;
+}
+
+const int CInventory::maxFood()
+{
+    return m_maxFood;
+}
+
+bool CInventory::adjustFood(int value)
+{
+    if (m_food + value > m_maxFood || m_food + value < 0)
+    {
+        return false;
+    }
+    m_food += value;
+    return true;
+}

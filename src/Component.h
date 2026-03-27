@@ -50,7 +50,8 @@ class CKnowledge : public Component
 
 public:
     std::map<Cords, Seen> m_reported_positions;
-    std::optional<Cords> m_closetst_food;
+    std::optional<Cords> m_closest_food;
+    Cords m_campfire = Cords(25 / 2, 25 / 2);
     CKnowledge() = default;
     CKnowledge(bool exists);
 };
@@ -86,4 +87,8 @@ public:
     const int mealCount();
     const int maxMeal();
     bool adjustMeal(int value);
+
+    const int foodCount();
+    const int maxFood();
+    bool adjustFood(int value);
 };

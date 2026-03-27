@@ -37,6 +37,13 @@ void Engine::simulate()
 Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), m_grid(width, height), m_knowledge(m_grid), m_movement(m_grid)
 {
     spdlog::info("Init Engine");
+
+    {
+        auto campfire = m_entities.addEntity(entity_type::campfire);
+        campfire->add<CPosition>(width / 2, height / 2);
+        m_grid.place(campfire);
+    }
+
     {
         auto npc = m_entities.addEntity(entity_type::npc);
         npc->add<CPosition>(0, 0);

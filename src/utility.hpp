@@ -10,7 +10,11 @@ enum entity_type
 {
     empty,
     npc,
-    meal
+    meal,
+    grass,
+    animal,
+    campfire,
+    raw_meat
 };
 
 struct Cords
