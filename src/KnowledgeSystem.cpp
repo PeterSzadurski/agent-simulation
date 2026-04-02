@@ -3,9 +3,26 @@ KnowledgeSystem::KnowledgeSystem(const Grid &grid) : m_grid(grid)
 {
 }
 
-void KnowledgeSystem::updateEntityKnowledge(CKnowledge &knowledge, const int currentTick, Cords cords, entity_type type)
+void KnowledgeSystem::updateEntityKnowledge(CPosition &pos, CKnowledge &knowledge, const int currentTick, Cords cords, entity_type type)
 {
     knowledge.m_reported_positions[cords] = Seen(type, currentTick);
+    if (type == entity_type::raw_meat)
+    {
+        if (!knowledge.m_closest_food.has_value())
+        {
+            knowledge.m_closest_food = cords;
+        }
+        else
+        {
+            float distA = Distance2(pos.cords, knowledge.m_closest_food.value());
+            float distB = Distance2(pos.cords, cords);
+
+            if (distA > distB)
+            {
+                knowledge.m_closest_food = cords;
+            }
+        }
+    }
 }
 
 bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const int currentTick)
@@ -23,12 +40,12 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
                 Cords cords = Cords(x, y);
                 if (m_grid.at(x, y) == nullptr && knowledge.m_reported_positions.contains(cords))
                 {
-                    updateEntityKnowledge(knowledge, currentTick, cords, entity_type::empty);
+                    updateEntityKnowledge(pos, knowledge, currentTick, cords, entity_type::empty);
                 }
                 else if (m_grid.at(x, y) != nullptr)
                 {
                     auto seenEntity = m_grid.at(x, y);
-                    updateEntityKnowledge(knowledge, currentTick, cords, seenEntity->type());
+                    updateEntityKnowledge(pos, knowledge, currentTick, cords, seenEntity->type());
                     foundSomething = true;
                 }
             }
@@ -38,16 +55,17 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
     return foundSomething;
 }
 
-bool KnowledgeSystem::findNearestMeal(std::shared_ptr<Entity> entity)
+bool KnowledgeSystem::findNearestEntityType(std::shared_ptr<Entity> entity, entity_type e_type)
 {
     auto &pos = entity->get<CPosition>();
     auto &knowledge = entity->get<CKnowledge>();
 
     for (const auto &[key, value] : knowledge.m_reported_positions)
     {
-        if (knowledge.m_reported_positions[key].type == entity_type::meal)
+        if (knowledge.m_reported_positions[key].type == e_type)
         {
             entity->add<CDesination>(key.x, key.y);
+
             return true;
         }
     }

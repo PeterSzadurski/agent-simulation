@@ -47,6 +47,13 @@ struct Cords
     }
 };
 
+inline float Distance2(const Cords &a, const Cords &b)
+{
+    int dX = a.x - b.x;
+    int dY = a.y - b.y;
+    return dX * dX + dY * dY;
+}
+
 struct Seen
 {
     entity_type type;
