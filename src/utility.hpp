@@ -45,6 +45,11 @@ struct Cords
 
         return Cords(dX, dY);
     }
+
+    bool operator==(const Cords &other) const
+    {
+        return x == other.x && y == other.y;
+    }
 };
 
 inline float Distance2(const Cords &a, const Cords &b)
