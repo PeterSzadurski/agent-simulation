@@ -62,7 +62,6 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
             spdlog::info("[Tick: {:08d}] Placed FOOD at ({:02d}, {:02d})", m_tick, food->get<CPosition>().cords.x, food->get<CPosition>().cords.y);
         }
     }
-
     {
         auto food = m_entities.addEntity(entity_type::raw_meat);
         food->add<CPosition>(0, 0);
@@ -108,7 +107,7 @@ void Engine::movementSystem()
         }
         if (moved)
         {
-            // spdlog::info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
+            spdlog::info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
         }
     }
 }
@@ -123,11 +122,20 @@ void Engine::actionSystem()
             auto &hunger = e->get<CHunger>();
             auto &inventory = e->get<CInventory>();
             auto &knowledge = e->get<CKnowledge>();
+            bool roomForFood = inventory.foodCount() < inventory.maxFood();
+            bool roomForMeal = inventory.mealCount() < inventory.maxMeal();
+
+            if (roomForFood && m_knowledge.findNearestEntityType(e, entity_type::raw_meat))
+            {
+                state = STATE::walking_to;
+            }
+            else
+            {
+                state = wander;
+            }
 
             if (e->has<CDesination>() && m_movement.nextToDestination(e))
             {
-                bool roomForFood = inventory.foodCount() < inventory.maxFood();
-                bool roomForMeal = inventory.mealCount() < inventory.maxMeal();
                 auto &dest = e->get<CDesination>();
                 auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
                 switch (dE->type())
@@ -172,10 +180,6 @@ void Engine::actionSystem()
                 {
                     // head for campfire
                     e->add<CDesination>(knowledge.m_campfire.x, knowledge.m_campfire.y);
-                    state = STATE::walking_to;
-                }
-                else if (m_knowledge.findNearestEntityType(e, entity_type::raw_meat))
-                {
                     state = STATE::walking_to;
                 }
                 else
