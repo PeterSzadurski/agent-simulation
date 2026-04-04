@@ -51,7 +51,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         npc->add<CState>(STATE::wander);
         npc->add<CLineOfSight>(3);
         npc->add<CKnowledge>(true);
-        npc->add<CInventory>(2);
+        npc->add<CInventory>(10);
         m_grid.placeRandom(npc, m_rng);
     }
     {
@@ -122,10 +122,8 @@ void Engine::actionSystem()
             auto &hunger = e->get<CHunger>();
             auto &inventory = e->get<CInventory>();
             auto &knowledge = e->get<CKnowledge>();
-            bool roomForFood = inventory.foodCount() < inventory.maxFood();
-            bool roomForMeal = inventory.mealCount() < inventory.maxMeal();
 
-            if (roomForFood && m_knowledge.findNearestEntityType(e, entity_type::raw_meat))
+            if (inventory.hasRoom() && m_knowledge.findNearestEntityType(e, entity_type::raw_meat))
             {
                 state = STATE::walking_to;
             }
@@ -141,9 +139,9 @@ void Engine::actionSystem()
                 switch (dE->type())
                 {
                 case raw_meat:
-                    if (roomForFood)
+                    if (inventory.hasRoom())
                     {
-                        inventory.adjustFood(1);
+                        inventory.adjustItems(raw_meat, 1);
                         dE->setAlive(false);
                         knowledge.m_reported_positions[dest.cords] = Seen(empty, m_tick);
                         if (knowledge.m_closest_food.has_value() && knowledge.m_closest_food.value() == dest.cords)
@@ -154,11 +152,11 @@ void Engine::actionSystem()
                     }
                     break;
                 case campfire:
-                    if (roomForMeal && inventory.foodCount() > 0)
+                    if (inventory.itemCount(raw_meat) > 0)
                     {
                         spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", m_tick, e->id());
-                        inventory.adjustFood(-1);
-                        inventory.adjustMeal(1);
+                        inventory.adjustItems(raw_meat, -1);
+                        inventory.adjustItems(meal, 1);
                     }
                     else
                     {
@@ -171,12 +169,12 @@ void Engine::actionSystem()
 
             if (hunger.isHungry())
             {
-                if (inventory.mealCount() > 0)
+                if (inventory.itemCount(meal) > 0)
                 {
                     hunger.reset();
-                    inventory.adjustMeal(-1);
+                    inventory.adjustItems(meal, -1);
                 }
-                else if (inventory.foodCount() > 0)
+                else if (inventory.itemCount(raw_meat) > 0)
                 {
                     // head for campfire
                     e->add<CDesination>(knowledge.m_campfire.x, knowledge.m_campfire.y);

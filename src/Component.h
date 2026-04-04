@@ -2,6 +2,7 @@
 #include "utility.hpp"
 #include <optional>
 #include <map>
+#include <unordered_map>
 
 class Component
 {
@@ -76,20 +77,18 @@ public:
 
 class CInventory : public Component
 {
-    int m_food = 0;
-    int m_maxFood = 2;
-    int m_maxMeal = 0;
-    int m_meal = 0;
+    int m_maxItems = 0;
+    int m_totalCount = 0;
+    std::unordered_map<entity_type, int> m_items;
 
 public:
     CInventory() = default;
-    CInventory(int maxMeal);
+    CInventory(int maxItems);
 
-    const int mealCount();
-    const int maxMeal();
-    bool adjustMeal(int value);
+    const int totalCount();
+    const int maxItems();
+    const bool hasRoom();
+    const int itemCount(entity_type e_type);
 
-    const int foodCount();
-    const int maxFood();
-    bool adjustFood(int value);
+    bool adjustItems(entity_type e_type, int value);
 };

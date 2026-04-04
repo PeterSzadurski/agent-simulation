@@ -78,47 +78,38 @@ CState::CState(STATE state) : state(state)
     exists = true;
 }
 
-CInventory::CInventory(int maxMeal) : m_maxMeal(maxMeal)
+CInventory::CInventory(int maxItems) : m_maxItems(maxItems)
 {
     exists = true;
+    m_items = {{raw_meat, 0},
+               {meal, 0}};
 }
 
-const int CInventory::mealCount()
+bool CInventory::adjustItems(entity_type e_type, int value)
 {
-    return m_meal;
-}
-
-const int CInventory::maxMeal()
-{
-    return m_maxMeal;
-}
-
-bool CInventory::adjustMeal(int value)
-{
-    if (m_meal + value > m_maxMeal || m_meal + value < 0)
-    {
+    if ((m_maxItems != -1 && m_totalCount + value > m_maxItems) || m_totalCount + value < 0)
         return false;
-    }
-    m_meal += value;
+    m_items[e_type] += value;
+    m_totalCount += value;
     return true;
 }
 
-const int CInventory::foodCount()
+const int CInventory::totalCount()
 {
-    return m_food;
+    return m_totalCount;
 }
 
-const int CInventory::maxFood()
+const int CInventory::maxItems()
 {
-    return m_maxFood;
+    return m_maxItems;
 }
 
-bool CInventory::adjustFood(int value)
+const bool CInventory::hasRoom()
 {
-    if (m_food + value > m_maxFood || m_food + value < 0)
-    {
-        return false;
-    }
-    m_food += value;
-    return true;
+    return m_maxItems == -1 || m_totalCount < m_maxItems;
+}
+
+const int CInventory::itemCount(entity_type e_type)
+{
+    return m_items[e_type];
 }
