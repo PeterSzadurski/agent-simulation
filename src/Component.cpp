@@ -87,7 +87,7 @@ CInventory::CInventory(int maxItems) : m_maxItems(maxItems)
 
 bool CInventory::adjustItems(entity_type e_type, int value)
 {
-    if ((m_maxItems != -1 && m_totalCount + value > m_maxItems) || m_totalCount + value < 0)
+    if ((m_maxItems > 0 && m_totalCount + value > m_maxItems) || m_totalCount + value < 0)
         return false;
     m_items[e_type] += value;
     m_totalCount += value;
@@ -106,7 +106,7 @@ const int CInventory::maxItems()
 
 const bool CInventory::hasRoom()
 {
-    return m_maxItems == -1 || m_totalCount < m_maxItems;
+    return m_maxItems <= 0 || m_totalCount < m_maxItems;
 }
 
 const int CInventory::itemCount(entity_type e_type)
