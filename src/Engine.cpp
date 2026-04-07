@@ -8,6 +8,7 @@ void Engine::hungerSystem()
 
         if (e->has<CHunger>())
         {
+            auto &pos = e->get<CPosition>();
             auto &hunger = e->get<CHunger>();
             int oldHungerValue = hunger.getHunger();
             if (hunger.isStarved())
@@ -17,7 +18,7 @@ void Engine::hungerSystem()
             }
             hunger.hungerTick();
             if (oldHungerValue != hunger.getHunger())
-                spdlog::info("[Tick: {:08d}] ID:{:08d} has ({:02d}) hunger", m_tick, e->id(), hunger.getHunger());
+                spdlog::info("[Tick: {:08d}] ID:{:08d} has ({:02d}) hunger at pos ({:02d},{:02d})", m_tick, e->id(), hunger.getHunger(), pos.cords.x, pos.cords.y);
         }
     }
 }
@@ -41,6 +42,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
     {
         auto campfire = m_entities.addEntity(entity_type::campfire);
         campfire->add<CPosition>(width / 2, height / 2);
+        campfire->add<CInventory>(0);
         m_grid.place(campfire);
     }
 
@@ -54,14 +56,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         npc->add<CInventory>(10);
         m_grid.placeRandom(npc, m_rng);
     }
-    {
-        auto food = m_entities.addEntity(entity_type::raw_meat);
-        food->add<CPosition>(0, 0);
-        if (m_grid.placeRandom(food, m_rng))
-        {
-            spdlog::info("[Tick: {:08d}] Placed FOOD at ({:02d}, {:02d})", m_tick, food->get<CPosition>().cords.x, food->get<CPosition>().cords.y);
-        }
-    }
+    for (int n = 0; n < 10; ++n)
     {
         auto food = m_entities.addEntity(entity_type::raw_meat);
         food->add<CPosition>(0, 0);
@@ -107,7 +102,7 @@ void Engine::movementSystem()
         }
         if (moved)
         {
-            spdlog::info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
+            // spdlog::info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
         }
     }
 }
@@ -122,6 +117,7 @@ void Engine::actionSystem()
             auto &hunger = e->get<CHunger>();
             auto &inventory = e->get<CInventory>();
             auto &knowledge = e->get<CKnowledge>();
+            auto &campInv = m_entities.getEntities(campfire).front()->get<CInventory>();
 
             if (inventory.hasRoom() && m_knowledge.findNearestEntityType(e, entity_type::raw_meat))
             {
@@ -156,7 +152,12 @@ void Engine::actionSystem()
                     {
                         spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", m_tick, e->id());
                         inventory.adjustItems(raw_meat, -1);
+                        campInv.adjustItems(meal, 1);
+                    }
+                    else if (inventory.itemCount(meal) == 0 && campInv.itemCount(meal) > 0)
+                    {
                         inventory.adjustItems(meal, 1);
+                        campInv.adjustItems(meal, -1);
                     }
                     else
                     {
@@ -174,7 +175,7 @@ void Engine::actionSystem()
                     hunger.reset();
                     inventory.adjustItems(meal, -1);
                 }
-                else if (inventory.itemCount(raw_meat) > 0)
+                else if (inventory.itemCount(raw_meat) > 0 || campInv.itemCount(meal) > 0)
                 {
                     // head for campfire
                     e->add<CDesination>(knowledge.m_campfire.x, knowledge.m_campfire.y);
