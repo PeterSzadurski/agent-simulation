@@ -1,27 +1,42 @@
 #include "Engine.h"
 #include <iostream>
 
-void Engine::hungerSystem()
+void Engine::decaySystem()
 {
     for (auto e : m_entities.getEntities())
     {
-
         if (e->has<CHunger>())
         {
-            auto &pos = e->get<CPosition>();
             auto &hunger = e->get<CHunger>();
-            int oldHungerValue = hunger.getHunger();
-            if (hunger.isStarved())
+            if (hunger.isDecayed())
             {
                 e->setAlive(false);
-                return;
+                continue;
             }
-            hunger.hungerTick();
-            if (oldHungerValue != hunger.getHunger())
-                spdlog::info("[Tick: {:08d}] ID:{:08d} has ({:02d}) hunger at pos ({:02d},{:02d})", m_tick, e->id(), hunger.getHunger(), pos.cords.x, pos.cords.y);
+            decaySystemProcess(e, hunger, "hunger");
+        }
+        if (e->has<CFuel>())
+        {
+            auto &fuel = e->get<CFuel>();
+            if (!fuel.isDecayed())
+            {
+                decaySystemProcess(e, fuel, "fuel");
+            }
         }
     }
-}
+};
+
+void Engine::decaySystemProcess(std::shared_ptr<Entity> e, CDecay &decay, std::string debugStr)
+{
+    auto &pos = e->get<CPosition>();
+    int oldDecayValue = decay.getDecay();
+    decay.decayTick();
+    if (oldDecayValue != decay.getDecay())
+    {
+        spdlog::info("[Tick: {:08d}] ID:{:08d} has ({:02d}) {} at pos ({:02d},{:02d})", m_tick, e->id(), decay.getDecay(),
+                     debugStr, pos.cords.x, pos.cords.y);
+    }
+};
 
 void Engine::simulate()
 {
@@ -29,7 +44,8 @@ void Engine::simulate()
     lineOfSightSystem();
     actionSystem();
     movementSystem();
-    hungerSystem();
+    decaySystem();
+    // decaySystem();
     cleanGrid();
     m_entities.update();
     m_tick++;
@@ -43,6 +59,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         auto campfire = m_entities.addEntity(entity_type::campfire);
         campfire->add<CPosition>(width / 2, height / 2);
         campfire->add<CInventory>(0);
+        campfire->add<CFuel>(0, 250);
         m_grid.place(campfire);
     }
 
@@ -63,6 +80,16 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         if (m_grid.placeRandom(food, m_rng))
         {
             spdlog::info("[Tick: {:08d}] Placed FOOD at ({:02d}, {:02d})", m_tick, food->get<CPosition>().cords.x, food->get<CPosition>().cords.y);
+        }
+    }
+
+    for (int n = 0; n < 5; ++n)
+    {
+        auto tree = m_entities.addEntity(entity_type::tree);
+        tree->add<CPosition>(0, 0);
+        if (m_grid.placeRandom(tree, m_rng))
+        {
+            spdlog::info("[Tick: {:08d}] Placed TREE at ({:02d}, {:02d})", m_tick, tree->get<CPosition>().cords.x, tree->get<CPosition>().cords.y);
         }
     }
 
@@ -118,6 +145,7 @@ void Engine::actionSystem()
             auto &inventory = e->get<CInventory>();
             auto &knowledge = e->get<CKnowledge>();
             auto &campInv = m_entities.getEntities(campfire).front()->get<CInventory>();
+            auto &campFuel = m_entities.getEntities(campfire).front()->get<CFuel>();
 
             if (inventory.hasRoom() && m_knowledge.findNearestEntityType(e, entity_type::raw_meat))
             {
@@ -148,7 +176,7 @@ void Engine::actionSystem()
                     }
                     break;
                 case campfire:
-                    if (inventory.itemCount(raw_meat) > 0)
+                    if (inventory.itemCount(raw_meat) > 0 && !campFuel.isDecayed())
                     {
                         spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", m_tick, e->id());
                         inventory.adjustItems(raw_meat, -1);
@@ -168,7 +196,7 @@ void Engine::actionSystem()
                 }
             }
 
-            if (hunger.isHungry())
+            if (hunger.isHalfway())
             {
                 if (inventory.itemCount(meal) > 0)
                 {

@@ -17,45 +17,45 @@ CDesination::CDesination(int x, int y)
     exists = true;
 }
 
-CHunger::CHunger()
+CDecay::CDecay()
 {
     exists = false;
 }
 
-bool CHunger::isHungry()
+bool CDecay::isHalfway()
 {
-    return m_currentHunger > 4;
+    return m_currentDecay > 4;
 }
 
-void CHunger::hungerTick()
+void CDecay::decayTick()
 {
-    --m_hungerTick;
-    if (m_hungerTick < 0)
+    --m_decayTick;
+    if (m_decayTick < 0)
     {
-        ++m_currentHunger;
-        m_hungerTick = 10;
+        ++m_currentDecay;
+        m_decayTick = 10;
     }
 }
 
-void CHunger::reset()
+void CDecay::reset()
 {
-    m_currentHunger = 0;
-    m_hungerTick = 10;
+    m_currentDecay = 0;
+    m_decayTick = 10;
 }
 
-bool CHunger::isStarved()
+bool CDecay::isDecayed()
 {
-    return m_currentHunger > 9;
+    return m_currentDecay > 9;
 }
 
-CHunger::CHunger(int hunger, int hungerTick) : m_currentHunger(hunger), m_hungerTick(hungerTick)
+CDecay::CDecay(int decay, int decayTick) : m_currentDecay(decay), m_decayTick(decayTick)
 {
     exists = true;
 }
 
-const int CHunger::getHunger() const
+const int CDecay::getDecay() const
 {
-    return m_currentHunger;
+    return m_currentDecay;
 }
 
 CKnowledge::CKnowledge(bool doesExist)
@@ -82,7 +82,8 @@ CInventory::CInventory(int maxItems) : m_maxItems(maxItems)
 {
     exists = true;
     m_items = {{raw_meat, 0},
-               {meal, 0}};
+               {meal, 0},
+               {wood, 0}};
 }
 
 bool CInventory::adjustItems(entity_type e_type, int value)

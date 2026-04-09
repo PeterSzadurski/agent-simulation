@@ -14,7 +14,9 @@ enum entity_type
     grass,
     animal,
     campfire,
-    raw_meat
+    raw_meat,
+    tree,
+    wood
 };
 
 struct Cords

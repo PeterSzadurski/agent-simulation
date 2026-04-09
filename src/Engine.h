@@ -11,7 +11,8 @@ class Engine
     Grid m_grid;
     KnowledgeSystem m_knowledge;
     MovementSystem m_movement;
-    void hungerSystem();
+    void decaySystem();
+    void decaySystemProcess(std::shared_ptr<Entity> e, CDecay &decay, std::string debugStr);
     void movementSystem();
     void actionSystem();
     void lineOfSightSystem();

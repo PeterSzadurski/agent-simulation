@@ -31,19 +31,31 @@ struct CStats : public Component
     CStats() = default;
 };
 
-class CHunger : public Component
+class CDecay : public Component
 {
-    int m_currentHunger = 0;
-    int m_hungerTick = 10;
+protected:
+    int m_currentDecay = 0;
+    int m_decayTick = 10;
 
 public:
-    bool isHungry();
-    void hungerTick();
-    bool isStarved();
-    CHunger();
-    CHunger(int hunger, int hungerTick);
-    const int getHunger() const;
+    bool isHalfway();
+    void decayTick();
+    bool isDecayed();
+    CDecay();
+    CDecay(int decay, int decayTick);
+    const int getDecay() const;
     void reset();
+};
+class CHunger : public CDecay
+{
+public:
+    using CDecay::CDecay;
+};
+
+class CFuel : public CDecay
+{
+public:
+    using CDecay::CDecay;
 };
 
 class CKnowledge : public Component
