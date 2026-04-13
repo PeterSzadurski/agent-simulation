@@ -83,7 +83,6 @@ bool Grid::inBounds(int x, int y) const
 bool Grid::move(std::shared_ptr<Entity> entity, int x, int y)
 {
     auto &pos = entity->get<CPosition>();
-    auto &hunter = entity->get<CDecay>();
     int nX = pos.cords.x + x;
     int nY = pos.cords.y + y;
 

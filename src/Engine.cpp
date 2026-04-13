@@ -45,13 +45,12 @@ void Engine::simulate()
     actionSystem();
     movementSystem();
     decaySystem();
-    // decaySystem();
     cleanGrid();
     m_entities.update();
     m_tick++;
 }
 
-Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), m_grid(width, height), m_knowledge(m_grid), m_movement(m_grid)
+Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), m_grid(width, height), m_knowledge(m_grid), m_movement(m_grid), m_decision()
 {
     spdlog::info("Init Engine");
 
@@ -69,7 +68,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         npc->add<CHunger>(0, 1000);
         npc->add<CState>(STATE::wander);
         npc->add<CLineOfSight>(3);
-        npc->add<CKnowledge>(true);
+        npc->add<CKnowledge>(width, height);
         npc->add<CInventory>(10);
         m_grid.placeRandom(npc, m_rng);
     }
@@ -83,7 +82,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         }
     }
 
-    for (int n = 0; n < 5; ++n)
+    for (int n = 0; n < 0; ++n)
     {
         auto tree = m_entities.addEntity(entity_type::tree);
         tree->add<CPosition>(0, 0);
@@ -136,6 +135,10 @@ void Engine::movementSystem()
 
 void Engine::actionSystem()
 {
+    auto &campInv = m_entities.getEntities(campfire).front()->get<CInventory>();
+    auto &campFuel = m_entities.getEntities(campfire).front()->get<CFuel>();
+    auto &campfireEntity = m_entities.getEntities(campfire).front();
+
     for (auto e : m_entities.getEntities())
     {
         if (e->has<CState>() && e->isAlive())
@@ -144,75 +147,54 @@ void Engine::actionSystem()
             auto &hunger = e->get<CHunger>();
             auto &inventory = e->get<CInventory>();
             auto &knowledge = e->get<CKnowledge>();
-            auto &campInv = m_entities.getEntities(campfire).front()->get<CInventory>();
-            auto &campFuel = m_entities.getEntities(campfire).front()->get<CFuel>();
+            auto &pos = e->get<CPosition>();
 
-            if (inventory.hasRoom() && m_knowledge.findNearestEntityType(e, entity_type::raw_meat))
+            // refactor
+            EntityState es = EntityState(e, campfireEntity);
+            switch (m_decision.chooseAction(es))
             {
+            case Eat:
+                hunger.reset();
+                inventory.adjustItems(meal, -1);
+                spdlog::info("[Tick: {:08d}] ID:{:08d} ate food.", m_tick, e->id());
+                break;
+            case Cook:
+
+                e->add<CDestination>(knowledge.m_campfire);
                 state = STATE::walking_to;
-            }
-            else
-            {
-                state = wander;
-            }
+                // spdlog::info("[Tick: {:08d}] ID:{:08d} set destination to campfire.", m_tick, e->id());
+                if (m_movement.nextToDestination(e))
+                {
+                    spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", m_tick, e->id());
+                    inventory.adjustItems(raw_meat, -1);
+                    inventory.adjustItems(meal, 1);
+                    e->remove<CDestination>();
+                }
+                break;
+            case GatherFood:
+                e->add<CDestination>(knowledge.m_closest_food.value().x, knowledge.m_closest_food.value().y);
+                state = walking_to;
+                spdlog::info("[Tick: {:08d}] ID:{:08d} set destination to meat.", m_tick, e->id());
+                if (m_movement.nextToDestination(e))
+                {
+                    auto &dest = e->get<CDestination>();
+                    auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
+                    spdlog::info("[Tick: {:08d}] ID:{:08d} picked up meat.", m_tick, e->id());
+                    inventory.adjustItems(raw_meat, 1);
 
-            if (e->has<CDesination>() && m_movement.nextToDestination(e))
-            {
-                auto &dest = e->get<CDesination>();
-                auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
-                switch (dE->type())
-                {
-                case raw_meat:
-                    if (inventory.hasRoom())
+                    dE->setAlive(false);
+                    knowledge.m_reported_positions[dest.cords] = Seen(empty, m_tick);
+                    if (knowledge.m_closest_food.has_value() && knowledge.m_closest_food.value() == dest.cords)
                     {
-                        inventory.adjustItems(raw_meat, 1);
-                        dE->setAlive(false);
-                        knowledge.m_reported_positions[dest.cords] = Seen(empty, m_tick);
-                        if (knowledge.m_closest_food.has_value() && knowledge.m_closest_food.value() == dest.cords)
-                        {
-                            knowledge.m_closest_food.reset();
-                        }
-                        e->remove<CDesination>();
+                        knowledge.m_closest_food.reset();
                     }
-                    break;
-                case campfire:
-                    if (inventory.itemCount(raw_meat) > 0 && !campFuel.isDecayed())
-                    {
-                        spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", m_tick, e->id());
-                        inventory.adjustItems(raw_meat, -1);
-                        campInv.adjustItems(meal, 1);
-                    }
-                    else if (inventory.itemCount(meal) == 0 && campInv.itemCount(meal) > 0)
-                    {
-                        inventory.adjustItems(meal, 1);
-                        campInv.adjustItems(meal, -1);
-                    }
-                    else
-                    {
-                        e->remove<CDesination>();
-                        state = wander;
-                    }
-                    break;
+                    e->remove<CDestination>();
                 }
-            }
-
-            if (hunger.isHalfway())
-            {
-                if (inventory.itemCount(meal) > 0)
-                {
-                    hunger.reset();
-                    inventory.adjustItems(meal, -1);
-                }
-                else if (inventory.itemCount(raw_meat) > 0 || campInv.itemCount(meal) > 0)
-                {
-                    // head for campfire
-                    e->add<CDesination>(knowledge.m_campfire.x, knowledge.m_campfire.y);
-                    state = STATE::walking_to;
-                }
-                else
-                {
-                    state = STATE::wander;
-                }
+                break;
+            case Wander:
+                e->remove<CDestination>();
+                state = STATE::wander;
+                break;
             }
         }
     }

@@ -18,11 +18,12 @@ struct CPosition : public Component
     CPosition(int x, int y);
 };
 
-struct CDesination : public Component
+struct CDestination : public Component
 {
     Cords cords;
-    CDesination() = default;
-    CDesination(int x, int y);
+    CDestination() = default;
+    CDestination(int x, int y);
+    CDestination(const Cords &c);
 };
 
 struct CStats : public Component
@@ -65,9 +66,9 @@ public:
     std::map<Cords, Seen> m_reported_positions;
     std::optional<Cords> m_closest_meal;
     std::optional<Cords> m_closest_food;
-    Cords m_campfire = Cords(25 / 2, 25 / 2);
+    Cords m_campfire;
     CKnowledge() = default;
-    CKnowledge(bool exists);
+    CKnowledge(int width, int height);
 };
 
 struct CState : public Component

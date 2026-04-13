@@ -8,6 +8,7 @@ add_executable(${PROJECT_NAME}
    src/Engine.cpp
    src/KnowledgeSystem.cpp
    src/MovementSystem.cpp
+   src/DecisionSystem.cpp
    src/Component.cpp
    src/EntityManager.cpp
    src/main.cpp

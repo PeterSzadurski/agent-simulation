@@ -11,9 +11,14 @@ CPosition::CPosition(int x, int y)
     exists = true;
 }
 
-CDesination::CDesination(int x, int y)
+CDestination::CDestination(int x, int y)
 {
     cords = Cords(x, y);
+    exists = true;
+}
+CDestination::CDestination(const Cords &c)
+{
+    cords = c;
     exists = true;
 }
 
@@ -58,9 +63,11 @@ const int CDecay::getDecay() const
     return m_currentDecay;
 }
 
-CKnowledge::CKnowledge(bool doesExist)
+CKnowledge::CKnowledge(int width, int height)
 {
-    exists = doesExist;
+    exists = true;
+    m_campfire.x = width / 2;
+    m_campfire.y = height / 2;
 }
 
 CLineOfSight::CLineOfSight(int sight) : m_sight(sight)

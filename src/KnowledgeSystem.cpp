@@ -64,7 +64,7 @@ bool KnowledgeSystem::findNearestEntityType(std::shared_ptr<Entity> entity, enti
     {
         if (knowledge.m_reported_positions[key].type == e_type)
         {
-            entity->add<CDesination>(key.x, key.y);
+            entity->add<CDestination>(key.x, key.y);
 
             return true;
         }

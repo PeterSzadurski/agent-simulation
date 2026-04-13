@@ -3,6 +3,7 @@
 #include "Grid.h"
 #include "KnowledgeSystem.h"
 #include "MovementSystem.h"
+#include "DecisionSystem.h"
 class Engine
 {
     std::mt19937 m_rng;
@@ -11,9 +12,12 @@ class Engine
     Grid m_grid;
     KnowledgeSystem m_knowledge;
     MovementSystem m_movement;
+    DecisionSystem m_decision;
+
     void decaySystem();
     void decaySystemProcess(std::shared_ptr<Entity> e, CDecay &decay, std::string debugStr);
     void movementSystem();
+    void decisionSystem();
     void actionSystem();
     void lineOfSightSystem();
     void cleanGrid();
