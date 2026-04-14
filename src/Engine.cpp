@@ -82,7 +82,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         }
     }
 
-    for (int n = 0; n < 0; ++n)
+    for (int n = 0; n < 5; ++n)
     {
         auto tree = m_entities.addEntity(entity_type::tree);
         tree->add<CPosition>(0, 0);
@@ -159,7 +159,6 @@ void Engine::actionSystem()
                 spdlog::info("[Tick: {:08d}] ID:{:08d} ate food.", m_tick, e->id());
                 break;
             case Cook:
-
                 e->add<CDestination>(knowledge.m_campfire);
                 state = STATE::walking_to;
                 // spdlog::info("[Tick: {:08d}] ID:{:08d} set destination to campfire.", m_tick, e->id());
@@ -168,6 +167,18 @@ void Engine::actionSystem()
                     spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", m_tick, e->id());
                     inventory.adjustItems(raw_meat, -1);
                     inventory.adjustItems(meal, 1);
+                    e->remove<CDestination>();
+                }
+                break;
+            case RefuelCampfire:
+                e->add<CDestination>(knowledge.m_campfire);
+                state = STATE::walking_to;
+                if (m_movement.nextToDestination(e))
+                {
+                    spdlog::info("[Tick: {:08d}] ID:{:08d} refueling.", m_tick, e->id());
+                    inventory.adjustItems(wood, -1);
+                    campInv.adjustItems(wood, 1);
+                    campFuel.reset();
                     e->remove<CDestination>();
                 }
                 break;
@@ -187,6 +198,26 @@ void Engine::actionSystem()
                     if (knowledge.m_closest_food.has_value() && knowledge.m_closest_food.value() == dest.cords)
                     {
                         knowledge.m_closest_food.reset();
+                    }
+                    e->remove<CDestination>();
+                }
+                break;
+            case GatherWood:
+                spdlog::info("[Tick: {:08d}] ID:{:08d} gather wood.", m_tick, e->id());
+                e->add<CDestination>(knowledge.m_closest_tree.value());
+                state = walking_to;
+                if (m_movement.nextToDestination(e))
+                {
+                    auto &dest = e->get<CDestination>();
+                    auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
+                    spdlog::info("[Tick: {:08d}] ID:{:08d} picked up wood.", m_tick, e->id());
+                    inventory.adjustItems(wood, 1);
+
+                    dE->setAlive(false);
+                    knowledge.m_reported_positions[dest.cords] = Seen(empty, m_tick);
+                    if (knowledge.m_closest_tree.has_value() && knowledge.m_closest_tree.value() == dest.cords)
+                    {
+                        knowledge.m_closest_tree.reset();
                     }
                     e->remove<CDestination>();
                 }

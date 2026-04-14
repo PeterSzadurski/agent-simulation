@@ -75,6 +75,7 @@ Action DecisionSystem::chooseAction(const EntityState &es)
         {GatherWood, scoreGatherWood(es)},
         {GatherFood, scoreGatherFood(es)},
         {TransferToCampfire, scoreTransferToCampfire(es)},
+        {RefuelCampfire, scoreRefuel(es)},
         {Action::Wander, 1}};
     return std::max_element(scores.begin(), scores.end(), [](auto &a, auto &b)
                             { return a.second < b.second; })

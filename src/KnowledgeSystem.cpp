@@ -23,6 +23,24 @@ void KnowledgeSystem::updateEntityKnowledge(CPosition &pos, CKnowledge &knowledg
             }
         }
     }
+    else if (type == entity_type::tree)
+    {
+
+        if (!knowledge.m_closest_tree.has_value())
+        {
+            knowledge.m_closest_tree = cords;
+        }
+        else
+        {
+            float distA = Distance2(pos.cords, knowledge.m_closest_tree.value());
+            float distB = Distance2(pos.cords, cords);
+
+            if (distA > distB)
+            {
+                knowledge.m_closest_tree = cords;
+            }
+        }
+    }
 }
 
 bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const int currentTick)

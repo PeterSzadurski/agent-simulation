@@ -4,6 +4,7 @@ enum Action
 {
     Eat,
     Cook,
+    RefuelCampfire,
     GatherFood,
     GatherWood,
     TransferToCampfire,
