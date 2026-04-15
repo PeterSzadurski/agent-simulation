@@ -183,44 +183,10 @@ void Engine::actionSystem()
                 }
                 break;
             case GatherFood:
-                e->add<CDestination>(knowledge.m_closest_food.value().x, knowledge.m_closest_food.value().y);
-                state = walking_to;
-                spdlog::info("[Tick: {:08d}] ID:{:08d} set destination to meat.", m_tick, e->id());
-                if (m_movement.nextToDestination(e))
-                {
-                    auto &dest = e->get<CDestination>();
-                    auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
-                    spdlog::info("[Tick: {:08d}] ID:{:08d} picked up meat.", m_tick, e->id());
-                    inventory.adjustItems(raw_meat, 1);
-
-                    dE->setAlive(false);
-                    knowledge.m_reported_positions[dest.cords] = Seen(empty, m_tick);
-                    if (knowledge.m_closest_food.has_value() && knowledge.m_closest_food.value() == dest.cords)
-                    {
-                        knowledge.m_closest_food.reset();
-                    }
-                    e->remove<CDestination>();
-                }
+                gatherResource(e, knowledge.m_closest_food, raw_meat, "meat");
                 break;
             case GatherWood:
-                spdlog::info("[Tick: {:08d}] ID:{:08d} gather wood.", m_tick, e->id());
-                e->add<CDestination>(knowledge.m_closest_tree.value());
-                state = walking_to;
-                if (m_movement.nextToDestination(e))
-                {
-                    auto &dest = e->get<CDestination>();
-                    auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
-                    spdlog::info("[Tick: {:08d}] ID:{:08d} picked up wood.", m_tick, e->id());
-                    inventory.adjustItems(wood, 1);
-
-                    dE->setAlive(false);
-                    knowledge.m_reported_positions[dest.cords] = Seen(empty, m_tick);
-                    if (knowledge.m_closest_tree.has_value() && knowledge.m_closest_tree.value() == dest.cords)
-                    {
-                        knowledge.m_closest_tree.reset();
-                    }
-                    e->remove<CDestination>();
-                }
+                gatherResource(e, knowledge.m_closest_tree, wood, "wood");
                 break;
             case Wander:
                 e->remove<CDestination>();
@@ -258,5 +224,33 @@ void Engine::cleanGrid()
             m_grid.remove(e);
             spdlog::info("[Tick: {:08d}] ID:{:08d} removed.", m_tick, e->id());
         }
+    }
+}
+
+void Engine::gatherResource(std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, const std::string &logName)
+{
+
+    auto &state = e->get<CState>();
+    auto &hunger = e->get<CHunger>();
+    auto &inventory = e->get<CInventory>();
+    auto &knowledge = e->get<CKnowledge>();
+
+    e->add<CDestination>(knowledgeTarget.value());
+    state = walking_to;
+    spdlog::info("[Tick: {:08d}] ID:{:08d} set destination to {}.", m_tick, e->id(), logName);
+    if (m_movement.nextToDestination(e))
+    {
+        auto &dest = e->get<CDestination>();
+        auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
+        spdlog::info("[Tick: {:08d}] ID:{:08d} picked up {}.", m_tick, e->id(), logName);
+        inventory.adjustItems(resourceType, 1);
+
+        dE->setAlive(false);
+        knowledge.m_reported_positions[dest.cords] = Seen(empty, m_tick);
+        if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
+        {
+            knowledgeTarget.reset();
+        }
+        e->remove<CDestination>();
     }
 }

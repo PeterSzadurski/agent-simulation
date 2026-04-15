@@ -21,6 +21,8 @@ class Engine
     void actionSystem();
     void lineOfSightSystem();
     void cleanGrid();
+    void gatherResource(std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget,
+                        entity_type resourceType, const std::string &logName);
 
 public:
     Engine(u_int32_t seed, int width, int height);
