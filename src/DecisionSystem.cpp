@@ -5,7 +5,7 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
 {
     auto &inv = e->get<CInventory>();
     auto &campInv = campfire->get<CInventory>();
-
+    auto &pos = e->get<CPosition>();
     auto &knowledge = e->get<CKnowledge>();
 
     hasInventorySpace = inv.hasRoom();
@@ -19,6 +19,7 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
     isCampfireFueled = !campfire->get<CFuel>().isDecayed() || campInv.itemCount(wood) > 0;
 
     hasKnowledgeRawMeat = knowledge.m_closest_food.has_value();
+    isAlreadyAtCampfire = isNextToCord(pos.cords, knowledge.m_campfire);
 }
 
 int DecisionSystem::scoreEat(const EntityState &es)
@@ -30,15 +31,27 @@ int DecisionSystem::scoreEat(const EntityState &es)
 
 int DecisionSystem::scoreCook(const EntityState &es)
 {
+    int baseScore = 75;
     if ((es.hasRawMeat || es.hasCampRawMeat) && es.isCampfireFueled)
-        return 75;
+    {
+        if (es.isAlreadyAtCampfire)
+        {
+            return baseScore + 50;
+        }
+        return baseScore;
+    }
     return 0;
 }
 
 int DecisionSystem::scoreRefuel(const EntityState &es)
 {
+    int baseScore = 90;
     if (es.hasWood && !es.isCampfireFueled)
-        return 90;
+    {
+        if (es.isAlreadyAtCampfire)
+            return baseScore + 50;
+        return baseScore;
+    }
     return 0;
 }
 

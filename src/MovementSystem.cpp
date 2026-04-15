@@ -26,9 +26,7 @@ bool MovementSystem::nextToDestination(std::shared_ptr<Entity> e)
     if (e->has<CDestination>())
     {
         auto &dest = e->get<CDestination>();
-        int x = pos.cords.x - dest.cords.x;
-        int y = pos.cords.y - dest.cords.y;
-        return abs(x) <= 1 && abs(y) <= 1;
+        return isNextToCord(pos.cords, dest.cords);
     }
     return false;
 }

@@ -61,6 +61,13 @@ inline float Distance2(const Cords &a, const Cords &b)
     return dX * dX + dY * dY;
 }
 
+inline bool isNextToCord(Cords &a, Cords &b)
+{
+    int x = a.x - b.x;
+    int y = a.y - b.y;
+    return abs(x) <= 1 && abs(y) <= 1;
+}
+
 struct Seen
 {
     entity_type type;

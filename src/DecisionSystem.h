@@ -24,6 +24,7 @@ struct EntityState
     bool hasCampMeals = false;
     bool hasCampRawMeat = false;
     bool hasKnowledgeRawMeat = false;
+    bool isAlreadyAtCampfire = false;
 };
 
 class DecisionSystem
