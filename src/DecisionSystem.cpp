@@ -14,9 +14,10 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
     hasWood = inv.itemCount(wood) > 0;
     isHungry = e->get<CHunger>().isHalfway();
     hasCampMeals = campInv.itemCount(meal);
+    // /hasCampWood = campInv.itemCount(wood);
     hasCampRawMeat = campInv.itemCount(raw_meat);
 
-    isCampfireFueled = !campfire->get<CFuel>().isDecayed() || campInv.itemCount(wood) > 0;
+    isCampfireFueled = !campfire->get<CFuel>().isDecayed();
 
     hasKnowledgeRawMeat = knowledge.m_closest_food.has_value();
     isAlreadyAtCampfire = isNextToCord(pos.cords, knowledge.m_campfire);
@@ -76,6 +77,20 @@ int DecisionSystem::scoreTransferToCampfire(const EntityState &es)
     return 0;
 }
 
+int DecisionSystem::scorePickupMeal(const EntityState &es)
+{
+    int baseScore = 95;
+    if (es.hasCampMeals && !es.hasMeals)
+    {
+        if (es.isAlreadyAtCampfire)
+        {
+            return baseScore + 50;
+        }
+        return baseScore;
+    }
+    return 0;
+}
+
 DecisionSystem::DecisionSystem()
 {
 }
@@ -89,6 +104,7 @@ Action DecisionSystem::chooseAction(const EntityState &es)
         {GatherFood, scoreGatherFood(es)},
         {TransferToCampfire, scoreTransferToCampfire(es)},
         {RefuelCampfire, scoreRefuel(es)},
+        {PickupMeal, scorePickupMeal(es)},
         {Action::Wander, 1}};
     return std::max_element(scores.begin(), scores.end(), [](auto &a, auto &b)
                             { return a.second < b.second; })

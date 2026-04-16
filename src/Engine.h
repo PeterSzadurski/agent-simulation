@@ -23,6 +23,7 @@ class Engine
     void cleanGrid();
     void gatherResource(std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget,
                         entity_type resourceType, const std::string &logName);
+    void useNoticeBoard(CKnowledge &knowledge);
 
 public:
     Engine(u_int32_t seed, int width, int height);

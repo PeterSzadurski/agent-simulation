@@ -59,9 +59,20 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         campfire->add<CPosition>(width / 2, height / 2);
         campfire->add<CInventory>(0);
         campfire->add<CFuel>(0, 250);
+        campfire->add<CKnowledge>(width, height);
         m_grid.place(campfire);
     }
 
+    {
+        auto npc = m_entities.addEntity(entity_type::npc);
+        npc->add<CPosition>(0, 0);
+        npc->add<CHunger>(0, 1000);
+        npc->add<CState>(STATE::wander);
+        npc->add<CLineOfSight>(3);
+        npc->add<CKnowledge>(width, height);
+        npc->add<CInventory>(10);
+        m_grid.placeRandom(npc, m_rng);
+    }
     {
         auto npc = m_entities.addEntity(entity_type::npc);
         npc->add<CPosition>(0, 0);
@@ -166,8 +177,22 @@ void Engine::actionSystem()
                 {
                     spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", m_tick, e->id());
                     inventory.adjustItems(raw_meat, -1);
+                    campInv.adjustItems(meal, 1);
+                    e->remove<CDestination>();
+                    useNoticeBoard(knowledge);
+                    useNoticeBoard(knowledge);
+                }
+                break;
+            case PickupMeal:
+                e->add<CDestination>(knowledge.m_campfire);
+                state = STATE::walking_to;
+                if (m_movement.nextToDestination(e))
+                {
+                    spdlog::info("[Tick: {:08d}] ID:{:08d} picked up meal.", m_tick, e->id());
+                    campInv.adjustItems(meal, -1);
                     inventory.adjustItems(meal, 1);
                     e->remove<CDestination>();
+                    useNoticeBoard(knowledge);
                 }
                 break;
             case RefuelCampfire:
@@ -180,6 +205,7 @@ void Engine::actionSystem()
                     campInv.adjustItems(wood, 1);
                     campFuel.reset();
                     e->remove<CDestination>();
+                    useNoticeBoard(knowledge);
                 }
                 break;
             case GatherFood:
@@ -188,7 +214,7 @@ void Engine::actionSystem()
             case GatherWood:
                 gatherResource(e, knowledge.m_closest_tree, wood, "wood");
                 break;
-            case Wander:
+            default:
                 e->remove<CDestination>();
                 state = STATE::wander;
                 break;
@@ -253,4 +279,33 @@ void Engine::gatherResource(std::shared_ptr<Entity> e, std::optional<Cords> &kno
         }
         e->remove<CDestination>();
     }
+}
+
+void Engine::useNoticeBoard(CKnowledge &knowledge)
+{
+    auto &campKnowledge = m_entities.getEntities(campfire).front()->get<CKnowledge>();
+
+    // higher tick overrides
+    auto mergeMaps = [](std::map<Cords, Seen> &dest,
+                        const std::map<Cords, Seen> &src)
+    {
+        for (const auto &[pos, seen] : src)
+        {
+            auto it = dest.find(pos);
+            if (it == dest.end() || it->second.tick < seen.tick)
+            {
+                dest[pos] = seen; // Add new or update if newer
+            }
+        }
+    };
+    mergeMaps(campKnowledge.m_reported_positions, knowledge.m_reported_positions);
+    mergeMaps(knowledge.m_reported_positions, campKnowledge.m_reported_positions);
+
+    std::erase_if(knowledge.m_reported_positions,
+                  [](const auto &pair)
+                  { return pair.second.type == entity_type::empty; });
+
+    std::erase_if(campKnowledge.m_reported_positions,
+                  [](const auto &pair)
+                  { return pair.second.type == entity_type::empty; });
 }

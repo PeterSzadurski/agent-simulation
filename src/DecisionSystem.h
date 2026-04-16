@@ -8,6 +8,7 @@ enum Action
     GatherFood,
     GatherWood,
     TransferToCampfire,
+    PickupMeal,
     None,
     Wander
 };
@@ -35,6 +36,7 @@ class DecisionSystem
     int scoreGatherFood(const EntityState &es);
     int scoreGatherWood(const EntityState &es);
     int scoreTransferToCampfire(const EntityState &es);
+    int scorePickupMeal(const EntityState &es);
 
 public:
     DecisionSystem();
