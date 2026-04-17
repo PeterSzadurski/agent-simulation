@@ -17,16 +17,16 @@ Grid::~Grid()
 {
 }
 
-void Grid::removeEmpty(int idx)
+void Grid::removeEmpty(int gridIdx)
 {
-    int pos = m_sparse[idx];
+    int pos = m_sparse[gridIdx];
 
     int last = m_dense.back();
     m_dense[pos] = last;
     m_sparse[last] = pos;
 
     m_dense.pop_back();
-    m_sparse[idx] = -1;
+    m_sparse[gridIdx] = -1;
 }
 
 void Grid::addEmpty(int idx)
@@ -52,11 +52,13 @@ bool Grid::placeRandom(std::shared_ptr<Entity> entity, std::mt19937 &rng)
     }
 
     std::uniform_int_distribution<int> dist(0, m_dense.size() - 1);
-    int randIdx = dist(rng);
-    entity->get<CPosition>().cords = toCords(randIdx);
-    m_entities[randIdx] = entity;
+    int denseIdx = dist(rng);
+    int gridIdx = m_dense[denseIdx];
 
-    removeEmpty(randIdx);
+    entity->get<CPosition>().cords = toCords(gridIdx);
+    m_entities[gridIdx] = entity;
+
+    removeEmpty(gridIdx);
     return true;
 }
 
@@ -113,5 +115,5 @@ void Grid::remove(std::shared_ptr<Entity> entity)
 Cords Grid::toCords(int idx)
 {
     assert(idx >= 0 && idx < m_width * m_height);
-    return Cords(idx % m_width, idx / m_height);
+    return Cords(idx % m_width, idx / m_width);
 }
