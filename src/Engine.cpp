@@ -22,6 +22,15 @@ void Engine::decaySystem()
             {
                 decaySystemProcess(e, fuel, "fuel");
             }
+            else
+            {
+                auto &inv = e->get<CInventory>();
+                if (inv.itemCount(wood) > 0)
+                {
+                    inv.adjustItems(wood, -1);
+                    fuel.reset();
+                }
+            }
         }
     }
 };
@@ -83,7 +92,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         npc->add<CInventory>(10);
         m_grid.placeRandom(npc, m_rng);
     }
-    for (int n = 0; n < 25; ++n)
+    for (int n = 0; n < 50; ++n)
     {
         auto food = m_entities.addEntity(entity_type::raw_meat);
         food->add<CPosition>(0, 0);
@@ -160,7 +169,6 @@ void Engine::actionSystem()
             auto &knowledge = e->get<CKnowledge>();
             auto &pos = e->get<CPosition>();
 
-            // refactor
             EntityState es = EntityState(e, campfireEntity);
             switch (m_decision.chooseAction(es))
             {
@@ -202,7 +210,6 @@ void Engine::actionSystem()
                     spdlog::info("[Tick: {:08d}] ID:{:08d} refueling.", m_tick, e->id());
                     inventory.adjustItems(wood, -1);
                     campInv.adjustItems(wood, 1);
-                    campFuel.reset();
                     e->remove<CDestination>();
                     useNoticeBoard(knowledge);
                 }
