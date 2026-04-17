@@ -1,65 +1,19 @@
 #include "Engine.h"
 #include <iostream>
 
-void Engine::decaySystem()
-{
-    for (auto e : m_entities.getEntities())
-    {
-        if (e->has<CHunger>())
-        {
-            auto &hunger = e->get<CHunger>();
-            if (hunger.isDecayed())
-            {
-                e->setAlive(false);
-                continue;
-            }
-            decaySystemProcess(e, hunger, "hunger");
-        }
-        if (e->has<CFuel>())
-        {
-            auto &fuel = e->get<CFuel>();
-            if (!fuel.isDecayed())
-            {
-                decaySystemProcess(e, fuel, "fuel");
-            }
-            else
-            {
-                auto &inv = e->get<CInventory>();
-                if (inv.itemCount(wood) > 0)
-                {
-                    inv.adjustItems(wood, -1);
-                    fuel.reset();
-                }
-            }
-        }
-    }
-};
-
-void Engine::decaySystemProcess(std::shared_ptr<Entity> e, CDecay &decay, std::string debugStr)
-{
-    auto &pos = e->get<CPosition>();
-    int oldDecayValue = decay.getDecay();
-    decay.decayTick();
-    if (oldDecayValue != decay.getDecay())
-    {
-        spdlog::info("[Tick: {:08d}] ID:{:08d} has ({:02d}) {} at pos ({:02d},{:02d})", m_tick, e->id(), decay.getDecay(),
-                     debugStr, pos.cords.x, pos.cords.y);
-    }
-};
-
 void Engine::simulate()
 {
 
     lineOfSightSystem();
     actionSystem();
     movementSystem();
-    decaySystem();
+    m_decay.update(m_entities, m_tick);
     cleanGrid();
     m_entities.update();
     m_tick++;
 }
 
-Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), m_grid(width, height), m_knowledge(m_grid), m_movement(m_grid), m_decision()
+Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), m_grid(width, height), m_knowledge(m_grid), m_movement(m_grid), m_decision(), m_decay()
 {
     spdlog::info("Init Engine");
 
@@ -80,7 +34,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0), 
         npc->add<CLineOfSight>(3);
         npc->add<CKnowledge>(width, height);
         npc->add<CInventory>(10);
-        npc->add<CStats>(10, 5, 2);
+        npc->add<CStats>(10, 5, 1);
         m_grid.placeRandom(npc, m_rng);
     }
     // {

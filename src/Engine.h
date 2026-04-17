@@ -4,6 +4,7 @@
 #include "KnowledgeSystem.h"
 #include "MovementSystem.h"
 #include "DecisionSystem.h"
+#include "DecaySystem.h"
 class Engine
 {
     std::mt19937 m_rng;
@@ -13,9 +14,8 @@ class Engine
     KnowledgeSystem m_knowledge;
     MovementSystem m_movement;
     DecisionSystem m_decision;
+    DecaySystem m_decay;
 
-    void decaySystem();
-    void decaySystemProcess(std::shared_ptr<Entity> e, CDecay &decay, std::string debugStr);
     void movementSystem();
     void decisionSystem();
     void actionSystem();
