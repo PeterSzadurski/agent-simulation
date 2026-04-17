@@ -30,6 +30,7 @@ struct CStats : public Component
 {
     int hitPoints, strength, speed = 1;
     CStats() = default;
+    CStats(int hp, int str, int spd);
 };
 
 class CDecay : public Component

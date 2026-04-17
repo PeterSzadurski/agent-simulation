@@ -121,3 +121,8 @@ const int CInventory::itemCount(entity_type e_type)
 {
     return m_items[e_type];
 }
+
+CStats::CStats(int hp, int str, int spd) : hitPoints(hp), strength(str), speed(spd)
+{
+    exists = true;
+}

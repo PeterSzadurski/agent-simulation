@@ -1,4 +1,8 @@
+#pragma once
 #include <math.h>
+#include <string>
+#include <fmt/format.h>
+
 enum STATE
 {
     idle,
@@ -12,11 +16,26 @@ enum entity_type
     npc,
     meal,
     grass,
-    animal,
+    deer,
     campfire,
     raw_meat,
     tree,
     wood
+};
+
+inline const char *entityTypeToString(entity_type type)
+{
+    static const char *names[]{
+        "empty",
+        "NPC",
+        "meal",
+        "grass",
+        "deer",
+        "campfire",
+        "raw meat"
+        "tree",
+        "wood"};
+    return names[static_cast<int>(type)];
 };
 
 struct Cords
@@ -51,6 +70,11 @@ struct Cords
     bool operator==(const Cords &other) const
     {
         return x == other.x && y == other.y;
+    }
+
+    std::string toStringPadded() const
+    {
+        return fmt::format("({:02d},{:02d})", x, y);
     }
 };
 
