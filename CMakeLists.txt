@@ -10,6 +10,7 @@ add_executable(${PROJECT_NAME}
    src/KnowledgeSystem.cpp
    src/MovementSystem.cpp
    src/DecisionSystem.cpp
+   src/ActionSystem.cpp
    src/Component.cpp
    src/EntityManager.cpp
    src/main.cpp

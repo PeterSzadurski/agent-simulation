@@ -3,7 +3,7 @@ DecaySystem::DecaySystem()
 {
 }
 
-void DecaySystem::update(EntityManager &em, int tick)
+void DecaySystem::update(int tick, EntityManager &em)
 {
     for (auto e : em.getEntities())
     {

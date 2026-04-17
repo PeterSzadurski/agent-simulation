@@ -2,9 +2,11 @@
 #include <random>
 #include "Grid.h"
 #include "KnowledgeSystem.h"
-#include "MovementSystem.h"
+// #include "MovementSystem.h"
 #include "DecisionSystem.h"
 #include "DecaySystem.h"
+#include "ActionSystem.h"
+
 class Engine
 {
     std::mt19937 m_rng;
@@ -15,15 +17,11 @@ class Engine
     MovementSystem m_movement;
     DecisionSystem m_decision;
     DecaySystem m_decay;
+    ActionSystem m_action;
 
     void movementSystem();
-    void decisionSystem();
-    void actionSystem();
     void lineOfSightSystem();
     void cleanGrid();
-    void gatherResource(std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget,
-                        entity_type resourceType, const std::string &logName);
-    void useNoticeBoard(CKnowledge &knowledge);
 
 public:
     Engine(u_int32_t seed, int width, int height);

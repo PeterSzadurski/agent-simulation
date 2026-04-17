@@ -8,5 +8,5 @@ private:
 
 public:
     DecaySystem();
-    void update(EntityManager &em, int tick);
+    void update(int tick, EntityManager &em);
 };
