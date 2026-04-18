@@ -8,10 +8,13 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
     auto &pos = e->get<CPosition>();
     auto &knowledge = e->get<CKnowledge>();
 
-    hasInventorySpace = inv.hasRoom();
-    hasMeals = inv.itemCount(meal) > 0;
-    hasRawMeat = inv.itemCount(raw_meat) > 0;
-    hasWood = inv.itemCount(wood) > 0;
+    if (e->has<CInventory>())
+    {
+        hasInventorySpace = inv.hasRoom();
+        hasMeals = inv.itemCount(meal) > 0;
+        hasRawMeat = inv.itemCount(raw_meat) > 0;
+        hasWood = inv.itemCount(wood) > 0;
+    }
     isHungry = e->get<CHunger>().isHalfway();
     hasCampMeals = campInv.itemCount(meal);
     // /hasCampWood = campInv.itemCount(wood);
@@ -21,7 +24,12 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
 
     hasKnowledgeRawMeat = knowledge.m_closest_food.has_value();
     hasKnowledgeTree = knowledge.m_closest_tree.has_value();
+    hasKnowledgeGrass = knowledge.m_closest_grass.has_value();
     isAlreadyAtCampfire = isNextToCord(pos.cords, knowledge.m_campfire);
+}
+
+DecisionSystem::DecisionSystem()
+{
 }
 
 int DecisionSystem::scoreEat(const EntityState &es)
@@ -92,11 +100,16 @@ int DecisionSystem::scorePickupMeal(const EntityState &es)
     return 0;
 }
 
-DecisionSystem::DecisionSystem()
+int DecisionSystem::scoreEatGrass(const EntityState &es)
 {
+    if (es.hasKnowledgeGrass && es.isHungry)
+    {
+        return 100;
+    }
+    return 0;
 }
 
-Action DecisionSystem::chooseAction(const EntityState &es)
+Action DecisionSystem::chooseNpcAction(const EntityState &es)
 {
     std::vector<std::pair<Action, int>> scores = {
         {Eat, scoreEat(es)},
@@ -106,6 +119,16 @@ Action DecisionSystem::chooseAction(const EntityState &es)
         {TransferToCampfire, scoreTransferToCampfire(es)},
         {RefuelCampfire, scoreRefuel(es)},
         {PickupMeal, scorePickupMeal(es)},
+        {Action::Wander, 1}};
+    return std::max_element(scores.begin(), scores.end(), [](auto &a, auto &b)
+                            { return a.second < b.second; })
+        ->first;
+}
+
+Action DecisionSystem::chooseDeerAction(const EntityState &es)
+{
+    std::vector<std::pair<Action, int>> scores = {
+        {EatGrass, scoreEatGrass(es)},
         {Action::Wander, 1}};
     return std::max_element(scores.begin(), scores.end(), [](auto &a, auto &b)
                             { return a.second < b.second; })

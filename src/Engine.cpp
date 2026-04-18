@@ -50,13 +50,36 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0),
     //     npc->add<CInventory>(10);
     //     m_grid.placeRandom(npc, m_rng);
     // }
-    for (int n = 0; n < 10; ++n)
+
+    {
+        auto deer = m_entities.addEntity(entity_type::deer);
+        deer->add<CPosition>(0, 0);
+        deer->add<CHunger>(0, 1000);
+        deer->add<CState>(STATE::wander);
+        deer->add<CLineOfSight>(3);
+        deer->add<CKnowledge>(width, height);
+        // deer->add<CInventory>(10);
+        deer->add<CStats>(10, 2, 1);
+        m_grid.placeRandom(deer, m_rng);
+    }
+
+    for (int n = 0; n < 2; ++n)
     {
         auto food = m_entities.addEntity(entity_type::raw_meat);
         food->add<CPosition>(0, 0);
         if (m_grid.placeRandom(food, m_rng))
         {
-            spdlog::info("[Tick: {:08d}] Placed grass at {}", m_tick, food->get<CPosition>().cords.toStringPadded());
+            spdlog::info("[Tick: {:08d}] Placed meat at {}", m_tick, food->get<CPosition>().cords.toStringPadded());
+        }
+    }
+
+    for (int n = 0; n < 10; ++n)
+    {
+        auto grass = m_entities.addEntity(entity_type::grass);
+        grass->add<CPosition>(0, 0);
+        if (m_grid.placeRandom(grass, m_rng))
+        {
+            spdlog::info("[Tick: {:08d}] Placed grass at {}", m_tick, grass->get<CPosition>().cords.toStringPadded());
         }
     }
 
@@ -66,7 +89,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0),
         tree->add<CPosition>(0, 0);
         if (m_grid.placeRandom(tree, m_rng))
         {
-            spdlog::info("[Tick: {:08d}] Placed TREE at ({:02d}, {:02d})", m_tick, tree->get<CPosition>().cords.x, tree->get<CPosition>().cords.y);
+            spdlog::info("[Tick: {:08d}] Placed Tree at ({:02d}, {:02d})", m_tick, tree->get<CPosition>().cords.x, tree->get<CPosition>().cords.y);
         }
     }
 

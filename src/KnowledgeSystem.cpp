@@ -86,6 +86,7 @@ void KnowledgeSystem::recalculateClosest(std::shared_ptr<Entity> entity)
     knowledge.m_lastRecalcPosition = pos.cords;
     knowledge.m_closest_food.reset();
     knowledge.m_closest_tree.reset();
+    knowledge.m_closest_grass.reset();
 
     for (const auto &[cords, seen] : knowledge.m_reported_positions)
     {
@@ -94,10 +95,13 @@ void KnowledgeSystem::recalculateClosest(std::shared_ptr<Entity> entity)
         {
             updateIfNearer(cords, knowledge.m_closest_food);
         }
-
         if (seen.type == tree)
         {
             updateIfNearer(cords, knowledge.m_closest_tree);
+        }
+        if (seen.type == grass)
+        {
+            updateIfNearer(cords, knowledge.m_closest_grass);
         }
     }
 }

@@ -5,7 +5,7 @@ ActionSystem::ActionSystem(DecisionSystem &decision,
 {
 }
 
-void ActionSystem::update(int tick, EntityManager &em)
+void ActionSystem::update(const int tick, EntityManager &em)
 {
     auto &campInv = em.getEntities(campfire).front()->get<CInventory>();
     auto &campFuel = em.getEntities(campfire).front()->get<CFuel>();
@@ -22,7 +22,7 @@ void ActionSystem::update(int tick, EntityManager &em)
             auto &pos = e->get<CPosition>();
 
             EntityState es = EntityState(e, campfireEntity);
-            switch (m_decision.chooseAction(es))
+            switch (m_decision.chooseNpcAction(es))
             {
             case Eat:
                 hunger.reset();
@@ -71,6 +71,43 @@ void ActionSystem::update(int tick, EntityManager &em)
                 break;
             case GatherWood:
                 gatherResource(tick, e, knowledge.m_closest_tree, wood, "wood");
+                break;
+            default:
+                e->remove<CDestination>();
+                state = STATE::wander;
+                break;
+            }
+        }
+    }
+
+    for (auto e : em.getEntities(deer))
+    {
+        if (e->has<CState>() && e->isAlive())
+        {
+            auto &state = e->get<CState>();
+            auto &hunger = e->get<CHunger>();
+            auto &knowledge = e->get<CKnowledge>();
+            auto &pos = e->get<CPosition>();
+
+            EntityState es = EntityState(e, campfireEntity);
+            switch (m_decision.chooseDeerAction(es))
+            {
+            case EatGrass:
+                e->add<CDestination>(knowledge.m_closest_grass.value());
+                state = STATE::walking_to;
+                if (m_movement.nextToDestination(e))
+                {
+                    auto &dest = e->get<CDestination>();
+                    auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
+                    if (dE)
+                    {
+                        spdlog::info("[Tick: {:08d}] ID:{:08d} {} ate grass.", tick, e->id(), entityTypeToString(e->type()));
+                        dE->setAlive(false);
+                        knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
+                        hunger.reset();
+                    }
+                    e->remove<CDestination>();
+                }
                 break;
             default:
                 e->remove<CDestination>();
