@@ -11,4 +11,5 @@ public:
     KnowledgeSystem(const Grid &grid);
     bool updateLineOfSight(std::shared_ptr<Entity> entity, const int currentTick);
     bool findNearestEntityType(std::shared_ptr<Entity> entity, entity_type e_type);
+    void recalculateClosest(std::shared_ptr<Entity> entity);
 };

@@ -68,6 +68,7 @@ public:
     std::optional<Cords> m_closest_meal;
     std::optional<Cords> m_closest_tree;
     std::optional<Cords> m_closest_food;
+    Cords m_lastRecalcPosition;
     Cords m_campfire;
     CKnowledge() = default;
     CKnowledge(int width, int height);

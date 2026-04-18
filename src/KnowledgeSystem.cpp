@@ -6,41 +6,6 @@ KnowledgeSystem::KnowledgeSystem(const Grid &grid) : m_grid(grid)
 void KnowledgeSystem::updateEntityKnowledge(CPosition &pos, CKnowledge &knowledge, const int currentTick, Cords cords, entity_type type)
 {
     knowledge.m_reported_positions[cords] = Seen(type, currentTick);
-    if (type == entity_type::raw_meat)
-    {
-        if (!knowledge.m_closest_food.has_value())
-        {
-            knowledge.m_closest_food = cords;
-        }
-        else
-        {
-            float distA = Distance2(pos.cords, knowledge.m_closest_food.value());
-            float distB = Distance2(pos.cords, cords);
-
-            if (distA > distB)
-            {
-                knowledge.m_closest_food = cords;
-            }
-        }
-    }
-    else if (type == entity_type::tree)
-    {
-
-        if (!knowledge.m_closest_tree.has_value())
-        {
-            knowledge.m_closest_tree = cords;
-        }
-        else
-        {
-            float distA = Distance2(pos.cords, knowledge.m_closest_tree.value());
-            float distB = Distance2(pos.cords, cords);
-
-            if (distA > distB)
-            {
-                knowledge.m_closest_tree = cords;
-            }
-        }
-    }
 }
 
 bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const int currentTick)
@@ -69,7 +34,7 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
             }
         }
     }
-
+    recalculateClosest(entity);
     return foundSomething;
 }
 
@@ -88,4 +53,51 @@ bool KnowledgeSystem::findNearestEntityType(std::shared_ptr<Entity> entity, enti
         }
     }
     return false;
+}
+
+void KnowledgeSystem::recalculateClosest(std::shared_ptr<Entity> entity)
+{
+
+    auto &knowledge = entity->get<CKnowledge>();
+    auto &pos = entity->get<CPosition>();
+
+    if (knowledge.m_lastRecalcPosition == pos.cords)
+    {
+        return;
+    }
+
+    auto updateIfNearer = [&pos](const Cords &candidate, std::optional<Cords> &closest)
+    {
+        if (!closest.has_value())
+        {
+            closest = candidate;
+        }
+        else
+        {
+            float currentDist = Distance2(pos.cords, closest.value());
+            float candidateDist = Distance2(pos.cords, candidate);
+            if (candidateDist < currentDist)
+            {
+                closest = candidate;
+            }
+        }
+    };
+
+    knowledge.m_lastRecalcPosition = pos.cords;
+    knowledge.m_closest_food.reset();
+    knowledge.m_closest_tree.reset();
+
+    for (const auto &[cords, seen] : knowledge.m_reported_positions)
+    {
+
+        if (seen.type == raw_meat)
+        {
+            updateIfNearer(cords, knowledge.m_closest_food);
+        }
+
+        if (seen.type == tree)
+        {
+            updateIfNearer(cords, knowledge.m_closest_tree);
+        }
+    }
 }
