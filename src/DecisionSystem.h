@@ -10,6 +10,7 @@ enum Action
     TransferToCampfire,
     PickupMeal,
     EatGrass,
+    HuntDeer,
     None,
     Wander
 };
@@ -28,6 +29,7 @@ struct EntityState
     bool hasKnowledgeRawMeat = false;
     bool hasKnowledgeTree = false;
     bool hasKnowledgeGrass = false;
+    bool hasKnowledgeDeer = false;
     bool isAlreadyAtCampfire = false;
 };
 
@@ -41,6 +43,7 @@ class DecisionSystem
     int scoreTransferToCampfire(const EntityState &es);
     int scorePickupMeal(const EntityState &es);
     int scoreEatGrass(const EntityState &es);
+    int scoreHuntDeer(const EntityState &es);
 
 public:
     DecisionSystem();

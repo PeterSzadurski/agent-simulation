@@ -25,6 +25,7 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
     hasKnowledgeRawMeat = knowledge.m_closest_food.has_value();
     hasKnowledgeTree = knowledge.m_closest_tree.has_value();
     hasKnowledgeGrass = knowledge.m_closest_grass.has_value();
+    hasKnowledgeDeer = knowledge.m_closest_deer.has_value();
     isAlreadyAtCampfire = isNextToCord(pos.cords, knowledge.m_campfire);
 }
 
@@ -109,6 +110,15 @@ int DecisionSystem::scoreEatGrass(const EntityState &es)
     return 0;
 }
 
+int DecisionSystem::scoreHuntDeer(const EntityState &es)
+{
+    if (es.hasKnowledgeDeer)
+    {
+        return 79;
+    }
+    return 0;
+}
+
 Action DecisionSystem::chooseNpcAction(const EntityState &es)
 {
     std::vector<std::pair<Action, int>> scores = {
@@ -119,6 +129,7 @@ Action DecisionSystem::chooseNpcAction(const EntityState &es)
         {TransferToCampfire, scoreTransferToCampfire(es)},
         {RefuelCampfire, scoreRefuel(es)},
         {PickupMeal, scorePickupMeal(es)},
+        {HuntDeer, scoreHuntDeer(es)},
         {Action::Wander, 1}};
     return std::max_element(scores.begin(), scores.end(), [](auto &a, auto &b)
                             { return a.second < b.second; })

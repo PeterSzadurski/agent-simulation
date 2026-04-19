@@ -3,9 +3,8 @@
 
 void Engine::simulate()
 {
-
     lineOfSightSystem();
-    m_action.update(m_tick, m_entities);
+    m_action.update(m_tick, m_entities, m_rng, m_pendingDrops);
     movementSystem();
     m_decay.update(m_tick, m_entities);
     cleanGrid();
@@ -37,7 +36,7 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0),
         npc->add<CLineOfSight>(3);
         npc->add<CKnowledge>(width, height);
         npc->add<CInventory>(10);
-        npc->add<CStats>(10, 5, 1);
+        npc->add<CStats>(10, 5, 2);
         m_grid.placeRandom(npc, m_rng);
     }
     // {
@@ -63,15 +62,15 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0),
         m_grid.placeRandom(deer, m_rng);
     }
 
-    for (int n = 0; n < 2; ++n)
-    {
-        auto food = m_entities.addEntity(entity_type::raw_meat);
-        food->add<CPosition>(0, 0);
-        if (m_grid.placeRandom(food, m_rng))
-        {
-            spdlog::info("[Tick: {:08d}] Placed meat at {}", m_tick, food->get<CPosition>().cords.toStringPadded());
-        }
-    }
+    //  for (int n = 0; n < 2; ++n)
+    //  {
+    //      auto food = m_entities.addEntity(entity_type::raw_meat);
+    //      food->add<CPosition>(0, 0);
+    //      if (m_grid.placeRandom(food, m_rng))
+    //      {
+    //          spdlog::info("[Tick: {:08d}] Placed meat at {}", m_tick, food->get<CPosition>().cords.toStringPadded());
+    //      }
+    //  }
 
     for (int n = 0; n < 10; ++n)
     {
@@ -166,4 +165,11 @@ void Engine::cleanGrid()
             spdlog::info("[Tick: {:08d}] ID:{:08d} removed.", m_tick, e->id());
         }
     }
+    for (auto &[type, pos] : m_pendingDrops)
+    {
+        auto drop = m_entities.addEntity(type);
+        drop->add<CPosition>(pos);
+        m_grid.place(drop);
+    }
+    m_pendingDrops.clear();
 }

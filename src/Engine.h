@@ -18,7 +18,7 @@ class Engine
     DecisionSystem m_decision;
     DecaySystem m_decay;
     ActionSystem m_action;
-
+    std::vector<std::pair<entity_type, Cords>> m_pendingDrops;
     void movementSystem();
     void lineOfSightSystem();
     void cleanGrid();

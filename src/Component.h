@@ -3,6 +3,9 @@
 #include <optional>
 #include <map>
 #include <unordered_map>
+#include <memory>
+
+class Entity;
 
 class Component
 {
@@ -16,6 +19,7 @@ struct CPosition : public Component
     Cords cords;
     CPosition() = default;
     CPosition(int x, int y);
+    CPosition(const Cords &c);
 };
 
 struct CDestination : public Component
@@ -69,6 +73,7 @@ public:
     std::optional<Cords> m_closest_tree;
     std::optional<Cords> m_closest_food;
     std::optional<Cords> m_closest_grass;
+    std::optional<Cords> m_closest_deer;
     Cords m_lastRecalcPosition;
     Cords m_campfire;
     CKnowledge() = default;
@@ -108,4 +113,12 @@ public:
     const int itemCount(entity_type e_type);
 
     bool adjustItems(entity_type e_type, int value);
+};
+
+struct CTarget : public Component
+{
+    std::shared_ptr<Entity> target;
+
+    CTarget() = default;
+    CTarget(std::shared_ptr<Entity> t) : target(t) { exists = true; }
 };

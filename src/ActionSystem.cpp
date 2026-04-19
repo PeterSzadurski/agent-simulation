@@ -5,7 +5,7 @@ ActionSystem::ActionSystem(DecisionSystem &decision,
 {
 }
 
-void ActionSystem::update(const int tick, EntityManager &em)
+void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, std::vector<std::pair<entity_type, Cords>> &pendingDrops)
 {
     auto &campInv = em.getEntities(campfire).front()->get<CInventory>();
     auto &campFuel = em.getEntities(campfire).front()->get<CFuel>();
@@ -71,6 +71,40 @@ void ActionSystem::update(const int tick, EntityManager &em)
                 break;
             case GatherWood:
                 gatherResource(tick, e, knowledge.m_closest_tree, wood, "wood");
+                break;
+            case HuntDeer:
+                if (e->has<CTarget>())
+                {
+                    e->add<CDestination>(e->get<CTarget>().target->get<CPosition>().cords);
+                }
+                else
+                {
+                    e->add<CDestination>(knowledge.m_closest_deer.value());
+                }
+                state = STATE::walking_to;
+                if (m_movement.nextToDestination(e))
+                {
+
+                    auto &dest = e->get<CDestination>();
+                    auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
+                    if (dE)
+                    {
+                        e->add<CTarget>(dE);
+                        combat(tick, rng, e, dE);
+                        if (!dE->isAlive())
+                        {
+                            e->remove<CDestination>();
+                            e->remove<CTarget>();
+                            pendingDrops.push_back({raw_meat, dE->get<CPosition>().cords});
+                        }
+                        if (!e->isAlive())
+                        {
+                            e->remove<CDestination>();
+                            e->remove<CTarget>();
+                            pendingDrops.push_back({raw_meat, dE->get<CPosition>().cords});
+                        }
+                    }
+                }
                 break;
             default:
                 e->remove<CDestination>();
@@ -175,4 +209,47 @@ void ActionSystem::useNoticeBoard(EntityManager &em, CKnowledge &knowledge)
     std::erase_if(campKnowledge.m_reported_positions,
                   [](const auto &pair)
                   { return pair.second.type == entity_type::empty; });
+}
+
+void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Entity> entity_a, std::shared_ptr<Entity> &entity_b)
+{
+    auto &stats_a = entity_a->get<CStats>();
+    auto &stats_b = entity_b->get<CStats>();
+
+    std::uniform_int_distribution<int> distA(0, stats_a.strength);
+    std::uniform_int_distribution<int> distB(0, stats_b.strength);
+
+    int damA = distA(rng);
+    int damB = distB(rng);
+
+    if (damA > damB)
+    {
+        int damage = damA - damB;
+        spdlog::info("[Tick: {:08d}] {}, ID:{:08d} dealt {} damage to {}, ID:{:08d}",
+                     tick, entityTypeToString(entity_a->type()), entity_a->id(), damage,
+                     entityTypeToString(entity_b->type()), entity_b->id());
+        stats_b.hitPoints -= damage;
+        if (stats_b.hitPoints <= 0)
+        {
+            entity_b->setAlive(false);
+        }
+    }
+    else if (damA < damB)
+    {
+        int damage = damB - damA;
+        spdlog::info("[Tick: {:08d}] {}, ID:{:08d} dealt {} damage to {}, ID:{:08d}",
+                     tick, entityTypeToString(entity_b->type()), entity_b->id(),
+                     damage, entityTypeToString(entity_a->type()), entity_a->id());
+        stats_a.hitPoints -= damage;
+        if (stats_a.hitPoints <= 0)
+        {
+            entity_a->setAlive(false);
+        }
+    }
+    else
+    {
+        spdlog::info("[Tick: {:08d}] {}, ID:{:08d} blocks an attack from {}, ID:{:08d}",
+                     tick, entityTypeToString(entity_b->type()), entity_b->id(),
+                     entityTypeToString(entity_a->type()), entity_a->id());
+    }
 }

@@ -11,10 +11,11 @@ private:
     MovementSystem &m_movement;
     DecisionSystem &m_decision;
     Grid &m_grid;
+    void combat(int const tick, std::mt19937 &rng, std::shared_ptr<Entity> entity_a, std::shared_ptr<Entity> &entity_b);
 
 public:
     ActionSystem(DecisionSystem &decision,
                  MovementSystem &movement,
                  Grid &grid);
-    void update(int tick, EntityManager &em);
+    void update(int tick, EntityManager &em, std::mt19937 &rng, std::vector<std::pair<entity_type, Cords>> &pendingDrops);
 };

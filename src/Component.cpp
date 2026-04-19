@@ -10,6 +10,11 @@ CPosition::CPosition(int x, int y)
     cords = Cords(x, y);
     exists = true;
 }
+CPosition::CPosition(const Cords &c)
+{
+    cords = c;
+    exists = true;
+}
 
 CDestination::CDestination(int x, int y)
 {
