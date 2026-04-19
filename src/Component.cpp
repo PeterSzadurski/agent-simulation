@@ -78,6 +78,7 @@ CKnowledge::CKnowledge(int width, int height)
 CLineOfSight::CLineOfSight(int sight) : m_sight(sight)
 {
     exists = true;
+    m_detectedEntities.reserve(sight * sight * 4);
 }
 
 const int CLineOfSight::sight() const
@@ -130,4 +131,10 @@ const int CInventory::itemCount(entity_type e_type)
 CStats::CStats(int hp, int str, int spd) : hitPoints(hp), strength(str), speed(spd)
 {
     exists = true;
+}
+
+CThreat::CThreat(const Cords &c)
+{
+    exists = true;
+    threatPos = c;
 }

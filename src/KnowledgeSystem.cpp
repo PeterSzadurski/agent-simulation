@@ -13,10 +13,13 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
     bool foundSomething = false;
     auto &pos = entity->get<CPosition>();
     auto &knowledge = entity->get<CKnowledge>();
-    int lineOfSight = entity->get<CLineOfSight>().sight();
-    for (int x = pos.cords.x - lineOfSight; x < pos.cords.x + lineOfSight; ++x)
+    auto &lineOfSight = entity->get<CLineOfSight>();
+
+    lineOfSight.m_detectedEntities.clear();
+
+    for (int x = pos.cords.x - lineOfSight.sight(); x < pos.cords.x + lineOfSight.sight(); ++x)
     {
-        for (int y = pos.cords.y - lineOfSight; y < pos.cords.y + lineOfSight; ++y)
+        for (int y = pos.cords.y - lineOfSight.sight(); y < pos.cords.y + lineOfSight.sight(); ++y)
         {
             if ((x != pos.cords.x || y != pos.cords.y) && m_grid.inBounds(x, y))
             {
@@ -30,6 +33,7 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
                     auto seenEntity = m_grid.at(x, y);
                     updateEntityKnowledge(pos, knowledge, currentTick, cords, seenEntity->type());
                     foundSomething = true;
+                    lineOfSight.m_detectedEntities.push_back(EntityPos(seenEntity->type(), pos.cords));
                 }
             }
         }

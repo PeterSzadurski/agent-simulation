@@ -10,4 +10,5 @@ public:
     bool moveRand(std::shared_ptr<Entity> e, std::mt19937 &rng);
     bool moveTo(std::shared_ptr<Entity> e);
     bool nextToDestination(std::shared_ptr<Entity> e);
+    bool moveAwayFrom(std::shared_ptr<Entity> e, const Cords &threat);
 };

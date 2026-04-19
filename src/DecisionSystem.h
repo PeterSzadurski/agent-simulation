@@ -10,6 +10,7 @@ enum Action
     TransferToCampfire,
     PickupMeal,
     EatGrass,
+    Flee,
     HuntDeer,
     None,
     Wander
@@ -31,6 +32,8 @@ struct EntityState
     bool hasKnowledgeGrass = false;
     bool hasKnowledgeDeer = false;
     bool isAlreadyAtCampfire = false;
+
+    std::optional<Cords> threatPosition;
 };
 
 class DecisionSystem
@@ -43,6 +46,7 @@ class DecisionSystem
     int scoreTransferToCampfire(const EntityState &es);
     int scorePickupMeal(const EntityState &es);
     int scoreEatGrass(const EntityState &es);
+    int scoreFlee(const EntityState &es);
     int scoreHuntDeer(const EntityState &es);
 
 public:

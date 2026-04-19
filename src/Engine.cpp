@@ -49,18 +49,32 @@ Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0),
     //     npc->add<CInventory>(10);
     //     m_grid.placeRandom(npc, m_rng);
     // }
-
+    for (int n = 0; n < 10; ++n)
     {
-        auto deer = m_entities.addEntity(entity_type::deer);
-        deer->add<CPosition>(0, 0);
-        deer->add<CHunger>(0, 1000);
-        deer->add<CState>(STATE::wander);
-        deer->add<CLineOfSight>(3);
-        deer->add<CKnowledge>(width, height);
-        // deer->add<CInventory>(10);
-        deer->add<CStats>(10, 2, 1);
-        m_grid.placeRandom(deer, m_rng);
+        {
+            auto deer = m_entities.addEntity(entity_type::deer);
+            deer->add<CPosition>(0, 0);
+            deer->add<CHunger>(0, 1000);
+            deer->add<CState>(STATE::wander);
+            deer->add<CLineOfSight>(3);
+            deer->add<CKnowledge>(width, height);
+            // deer->add<CInventory>(10);
+            deer->add<CStats>(10, 2, 1);
+            m_grid.placeRandom(deer, m_rng);
+        }
     }
+
+    // {
+    //     auto deer = m_entities.addEntity(entity_type::deer);
+    //     deer->add<CPosition>(0, 0);
+    //     deer->add<CHunger>(0, 1000);
+    //     deer->add<CState>(STATE::wander);
+    //     deer->add<CLineOfSight>(3);
+    //     deer->add<CKnowledge>(width, height);
+    //     // deer->add<CInventory>(10);
+    //     deer->add<CStats>(10, 2, 1);
+    //     m_grid.placeRandom(deer, m_rng);
+    // }
 
     //  for (int n = 0; n < 2; ++n)
     //  {
@@ -125,6 +139,10 @@ void Engine::movementSystem()
                 {
                     moved = m_movement.moveTo(e);
                 }
+                break;
+            case STATE::feeling_from:
+                moved = m_movement.moveAwayFrom(e, e->get<CThreat>().threatPos);
+                e->remove<CThreat>();
                 break;
             default:
                 break;

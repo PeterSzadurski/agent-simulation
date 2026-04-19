@@ -7,6 +7,7 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
     auto &campInv = campfire->get<CInventory>();
     auto &pos = e->get<CPosition>();
     auto &knowledge = e->get<CKnowledge>();
+    auto &lineOfSight = e->get<CLineOfSight>();
 
     if (e->has<CInventory>())
     {
@@ -17,7 +18,6 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
     }
     isHungry = e->get<CHunger>().isHalfway();
     hasCampMeals = campInv.itemCount(meal);
-    // /hasCampWood = campInv.itemCount(wood);
     hasCampRawMeat = campInv.itemCount(raw_meat);
 
     isCampfireFueled = !campfire->get<CFuel>().isDecayed();
@@ -27,6 +27,18 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
     hasKnowledgeGrass = knowledge.m_closest_grass.has_value();
     hasKnowledgeDeer = knowledge.m_closest_deer.has_value();
     isAlreadyAtCampfire = isNextToCord(pos.cords, knowledge.m_campfire);
+
+    if (e->type() == deer)
+    {
+        for (const EntityPos &detected : lineOfSight.m_detectedEntities)
+        {
+            if (detected.first == npc)
+            {
+                threatPosition = detected.second;
+                break;
+            }
+        }
+    }
 }
 
 DecisionSystem::DecisionSystem()
@@ -112,9 +124,18 @@ int DecisionSystem::scoreEatGrass(const EntityState &es)
 
 int DecisionSystem::scoreHuntDeer(const EntityState &es)
 {
-    if (es.hasKnowledgeDeer)
+    if (es.hasKnowledgeDeer && !es.hasRawMeat)
     {
         return 79;
+    }
+    return 0;
+}
+
+int DecisionSystem::scoreFlee(const EntityState &es)
+{
+    if (es.threatPosition.has_value())
+    {
+        return 100;
     }
     return 0;
 }
@@ -140,6 +161,7 @@ Action DecisionSystem::chooseDeerAction(const EntityState &es)
 {
     std::vector<std::pair<Action, int>> scores = {
         {EatGrass, scoreEatGrass(es)},
+        {Flee, scoreFlee(es)},
         {Action::Wander, 1}};
     return std::max_element(scores.begin(), scores.end(), [](auto &a, auto &b)
                             { return a.second < b.second; })

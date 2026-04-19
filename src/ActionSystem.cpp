@@ -5,7 +5,7 @@ ActionSystem::ActionSystem(DecisionSystem &decision,
 {
 }
 
-void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, std::vector<std::pair<entity_type, Cords>> &pendingDrops)
+void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, std::vector<EntityPos> &pendingDrops)
 {
     auto &campInv = em.getEntities(campfire).front()->get<CInventory>();
     auto &campFuel = em.getEntities(campfire).front()->get<CFuel>();
@@ -87,22 +87,18 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
 
                     auto &dest = e->get<CDestination>();
                     auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
-                    if (dE)
+                    if (dE && dE->type() == deer)
                     {
                         e->add<CTarget>(dE);
                         combat(tick, rng, e, dE);
-                        if (!dE->isAlive())
-                        {
-                            e->remove<CDestination>();
-                            e->remove<CTarget>();
-                            pendingDrops.push_back({raw_meat, dE->get<CPosition>().cords});
-                        }
-                        if (!e->isAlive())
-                        {
-                            e->remove<CDestination>();
-                            e->remove<CTarget>();
-                            pendingDrops.push_back({raw_meat, dE->get<CPosition>().cords});
-                        }
+                        combatOutcome(tick, e, dE, pendingDrops);
+                    }
+                    else
+                    {
+                        // state data
+                        e->remove<CTarget>();
+                        e->remove<CDestination>();
+                        knowledge.m_closest_deer.reset();
                     }
                 }
                 break;
@@ -142,6 +138,10 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     }
                     e->remove<CDestination>();
                 }
+                break;
+            case Flee:
+                e->add<CThreat>(es.threatPosition.value());
+                state = STATE::feeling_from;
                 break;
             default:
                 e->remove<CDestination>();
@@ -251,5 +251,29 @@ void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Ent
         spdlog::info("[Tick: {:08d}] {}, ID:{:08d} blocks an attack from {}, ID:{:08d}",
                      tick, entityTypeToString(entity_b->type()), entity_b->id(),
                      entityTypeToString(entity_a->type()), entity_a->id());
+    }
+}
+
+void ActionSystem::combatOutcome(int const tick, std::shared_ptr<Entity> &attacker, std::shared_ptr<Entity> &defender, std::vector<std::pair<entity_type, Cords>> &pendingDrops)
+{
+    if (!defender->isAlive())
+    {
+        attacker->remove<CDestination>();
+        attacker->remove<CTarget>();
+        if (defender->type() == deer)
+        {
+            pendingDrops.push_back({raw_meat, defender->get<CPosition>().cords});
+            spdlog::info("[Tick: {:08d}] {}, ID:{:08d} slain {}, ID:{:08d}",
+                         tick, entityTypeToString(attacker->type()), attacker->id(),
+                         entityTypeToString(defender->type()), defender->id());
+        }
+    }
+    if (!attacker->isAlive())
+    {
+        spdlog::info("[Tick: {:08d}] {}, ID:{:08d} slain {}, ID:{:08d}",
+                     tick, entityTypeToString(defender->type()), defender->id(),
+                     entityTypeToString(attacker->type()), attacker->id());
+
+        // todo inventory drop
     }
 }

@@ -17,7 +17,16 @@ bool MovementSystem::moveTo(std::shared_ptr<Entity> e)
 {
     auto &pos = e->get<CPosition>();
     Cords direction = Cords::normal(e->get<CDestination>().cords, pos.cords);
-    return m_grid.move(e, direction.x, direction.y);
+    if (m_grid.move(e, direction.x, direction.y))
+        return true;
+
+    // single direction fallbacks
+    if (direction.x != 0 && m_grid.move(e, direction.x, 0))
+        return true;
+    if (direction.y != 0 && m_grid.move(e, 0, direction.y))
+        return true;
+
+    return false;
 }
 
 bool MovementSystem::nextToDestination(std::shared_ptr<Entity> e)
@@ -29,4 +38,11 @@ bool MovementSystem::nextToDestination(std::shared_ptr<Entity> e)
         return isNextToCord(pos.cords, dest.cords);
     }
     return false;
+}
+
+bool MovementSystem::moveAwayFrom(std::shared_ptr<Entity> e, const Cords &threat)
+{
+    auto &pos = e->get<CPosition>();
+    Cords direction = Cords::normal(pos.cords, threat);
+    return m_grid.move(e, direction.x, direction.y);
 }

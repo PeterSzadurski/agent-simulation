@@ -7,7 +7,8 @@ enum STATE
 {
     idle,
     wander,
-    walking_to
+    walking_to,
+    feeling_from
 };
 
 enum entity_type
@@ -32,7 +33,7 @@ inline const char *entityTypeToString(entity_type type)
         "grass",
         "deer",
         "campfire",
-        "raw meat"
+        "raw meat",
         "tree",
         "wood"};
     return names[static_cast<int>(type)];

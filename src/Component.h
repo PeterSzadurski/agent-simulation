@@ -4,8 +4,10 @@
 #include <map>
 #include <unordered_map>
 #include <memory>
+#include <vector>
 
 class Entity;
+typedef std::pair<entity_type, Cords> EntityPos;
 
 class Component
 {
@@ -95,6 +97,7 @@ public:
     CLineOfSight() = default;
     CLineOfSight(int sight);
     const int sight() const;
+    std::vector<EntityPos> m_detectedEntities;
 };
 
 class CInventory : public Component
@@ -121,4 +124,10 @@ struct CTarget : public Component
 
     CTarget() = default;
     CTarget(std::shared_ptr<Entity> t) : target(t) { exists = true; }
+};
+struct CThreat : public Component
+{
+    Cords threatPos;
+    CThreat() = default;
+    CThreat(const Cords &c);
 };
