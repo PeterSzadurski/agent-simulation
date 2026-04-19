@@ -4,10 +4,12 @@
 void Engine::simulate()
 {
     lineOfSightSystem();
-    m_action.update(m_tick, m_entities, m_rng, m_pendingDrops);
+    m_action.update(m_tick, m_entities, m_rng, m_pendingDrops, m_statistics);
     movementSystem();
     m_decay.update(m_tick, m_entities);
     cleanGrid();
+    spawnSystem();
+    featSystem();
     m_entities.update();
     m_tick++;
 }
@@ -15,95 +17,41 @@ void Engine::simulate()
 Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0),
                                                         m_grid(width, height), m_knowledge(m_grid),
                                                         m_movement(m_grid), m_decision(), m_decay(),
-                                                        m_action(m_decision, m_movement, m_grid)
+                                                        m_action(m_decision, m_movement, m_grid), m_width(width), m_height(height)
 {
     spdlog::info("Init Engine");
 
     {
         auto campfire = m_entities.addEntity(entity_type::campfire);
-        campfire->add<CPosition>(width / 2, height / 2);
+        campfire->add<CPosition>(m_width / 2, m_height / 2);
         campfire->add<CInventory>(0);
         campfire->add<CFuel>(0, 250);
-        campfire->add<CKnowledge>(width, height);
+        campfire->add<CKnowledge>(m_width, m_height);
         m_grid.place(campfire);
     }
+    int npcSpawnCount = randRange(1, 3);
+    int deerSpawnCount = randRange(2, 5);
+    int grassSpawnCount = randRange(1, 10);
+    int treeSpawnCount = randRange(2, 5);
 
+    for (int n = 0; n < npcSpawnCount; ++n)
     {
-        auto npc = m_entities.addEntity(entity_type::npc);
-        npc->add<CPosition>(0, 0);
-        npc->add<CHunger>(0, 1000);
-        npc->add<CState>(STATE::wander);
-        npc->add<CLineOfSight>(3);
-        npc->add<CKnowledge>(width, height);
-        npc->add<CInventory>(10);
-        npc->add<CStats>(10, 5, 2);
-        m_grid.placeRandom(npc, m_rng);
-    }
-    // {
-    //     auto npc = m_entities.addEntity(entity_type::npc);
-    //     npc->add<CPosition>(0, 0);
-    //     npc->add<CHunger>(0, 1000);
-    //     npc->add<CState>(STATE::wander);
-    //     npc->add<CLineOfSight>(3);
-    //     npc->add<CKnowledge>(width, height);
-    //     npc->add<CInventory>(10);
-    //     m_grid.placeRandom(npc, m_rng);
-    // }
-    for (int n = 0; n < 10; ++n)
-    {
-        {
-            auto deer = m_entities.addEntity(entity_type::deer);
-            deer->add<CPosition>(0, 0);
-            deer->add<CHunger>(0, 1000);
-            deer->add<CState>(STATE::wander);
-            deer->add<CLineOfSight>(3);
-            deer->add<CKnowledge>(width, height);
-            // deer->add<CInventory>(10);
-            deer->add<CStats>(10, 2, 1);
-            m_grid.placeRandom(deer, m_rng);
-        }
+        spawnNpc();
     }
 
-    // {
-    //     auto deer = m_entities.addEntity(entity_type::deer);
-    //     deer->add<CPosition>(0, 0);
-    //     deer->add<CHunger>(0, 1000);
-    //     deer->add<CState>(STATE::wander);
-    //     deer->add<CLineOfSight>(3);
-    //     deer->add<CKnowledge>(width, height);
-    //     // deer->add<CInventory>(10);
-    //     deer->add<CStats>(10, 2, 1);
-    //     m_grid.placeRandom(deer, m_rng);
-    // }
-
-    //  for (int n = 0; n < 2; ++n)
-    //  {
-    //      auto food = m_entities.addEntity(entity_type::raw_meat);
-    //      food->add<CPosition>(0, 0);
-    //      if (m_grid.placeRandom(food, m_rng))
-    //      {
-    //          spdlog::info("[Tick: {:08d}] Placed meat at {}", m_tick, food->get<CPosition>().cords.toStringPadded());
-    //      }
-    //  }
-
-    for (int n = 0; n < 10; ++n)
+    for (int n = 0; n < deerSpawnCount; ++n)
     {
-        auto grass = m_entities.addEntity(entity_type::grass);
-        grass->add<CPosition>(0, 0);
-        if (m_grid.placeRandom(grass, m_rng))
-        {
-            spdlog::info("[Tick: {:08d}] Placed grass at {}", m_tick, grass->get<CPosition>().cords.toStringPadded());
-        }
+        spawnDeer();
     }
 
-    for (int n = 0; n < 5; ++n)
+    for (int n = 0; n < grassSpawnCount; ++n)
     {
-        auto tree = m_entities.addEntity(entity_type::tree);
-        tree->add<CPosition>(0, 0);
-        if (m_grid.placeRandom(tree, m_rng))
-        {
-            spdlog::info("[Tick: {:08d}] Placed Tree at ({:02d}, {:02d})", m_tick, tree->get<CPosition>().cords.x, tree->get<CPosition>().cords.y);
-        }
+        spawnGrass();
+    }
+
+    for (int n = 0; n < treeSpawnCount; ++n)
+    {
+        spawnTree();
     }
 
     m_entities.update();
@@ -190,4 +138,120 @@ void Engine::cleanGrid()
         m_grid.place(drop);
     }
     m_pendingDrops.clear();
+}
+
+int Engine::randRange(int min, int max)
+{
+    return std::uniform_int_distribution<int>(min, max)(m_rng);
+}
+
+void Engine::spawnNpc()
+{
+    auto npc = m_entities.addEntity(entity_type::npc);
+    npc->add<CPosition>(0, 0);
+    npc->add<CHunger>(0, 1000);
+    npc->add<CState>(STATE::wander);
+    npc->add<CLineOfSight>(3);
+    npc->add<CKnowledge>(m_width, m_height);
+    npc->add<CInventory>(10);
+    npc->add<CStats>(randRange(5, 15), randRange(3, 15), randRange(1, 5));
+    npc->add<CFeats>(true);
+    m_grid.placeRandom(npc, m_rng);
+}
+
+void Engine::spawnDeer()
+{
+    auto deer = m_entities.addEntity(entity_type::deer);
+    deer->add<CPosition>(0, 0);
+    deer->add<CHunger>(0, 1000);
+    deer->add<CState>(STATE::wander);
+    deer->add<CLineOfSight>(3);
+    deer->add<CKnowledge>(m_width, m_height);
+    deer->add<CStats>(randRange(1, 10), randRange(5, 10), randRange(1, 3));
+    m_grid.placeRandom(deer, m_rng);
+}
+
+void Engine::spawnGrass()
+{
+    auto grass = m_entities.addEntity(entity_type::grass);
+    grass->add<CPosition>(0, 0);
+    if (m_grid.placeRandom(grass, m_rng))
+    {
+        spdlog::info("[Tick: {:08d}] Placed grass at {}", m_tick, grass->get<CPosition>().cords.toStringPadded());
+    }
+}
+
+void Engine::spawnTree()
+{
+    auto tree = m_entities.addEntity(entity_type::tree);
+    tree->add<CPosition>(0, 0);
+    if (m_grid.placeRandom(tree, m_rng))
+    {
+        spdlog::info("[Tick: {:08d}] Placed Tree at ({:02d}, {:02d})", m_tick, tree->get<CPosition>().cords.x, tree->get<CPosition>().cords.y);
+    }
+}
+
+void Engine::spawnSystem()
+{
+    if (m_tick % m_spawnRate == 0)
+    {
+        int roll = randRange(1, 100);
+        if (roll <= 10)
+        {
+            spawnNpc();
+        }
+        else if (roll <= 25)
+        {
+            spawnDeer();
+        }
+        else if (roll <= 75)
+        {
+            spawnGrass();
+        }
+        else
+        {
+            spawnTree();
+        }
+    }
+}
+
+void Engine::featSystem()
+{
+    for (auto e : m_entities.getEntities(npc))
+    {
+        auto &feats = e->get<CFeats>();
+        if (feats.choppedTrees > m_bestLumberjack.second)
+        {
+            m_bestLumberjack.first = e->id();
+            m_bestLumberjack.second = feats.choppedTrees;
+        }
+        if (feats.foodAte > m_mostHungry.second)
+        {
+            m_mostHungry.first = e->id();
+            m_mostHungry.second = feats.foodAte;
+        }
+        if (feats.slainDeer > m_bestHunter.second)
+        {
+            m_bestHunter.first = e->id();
+            m_bestHunter.second = feats.slainDeer;
+        }
+        if (feats.mealsCooked > m_bestCook.second)
+        {
+            m_bestCook.first = e->id();
+            m_bestCook.second = feats.mealsCooked;
+        }
+    }
+}
+
+void Engine::printFeats()
+{
+    spdlog::info("ID:{:08d} hunted {} deer.", m_bestHunter.first, m_bestHunter.second);
+    spdlog::info("ID:{:08d} cooked {} meals.", m_bestCook.first, m_bestCook.second);
+    spdlog::info("ID:{:08d} ate {} meals.", m_mostHungry.first, m_mostHungry.second);
+    spdlog::info("ID:{:08d} chopped {} trees.", m_bestLumberjack.first, m_bestLumberjack.second);
+
+    spdlog::info("{} total deer hunted.", m_statistics.totalDeersSlain);
+    spdlog::info("{} total meals cooked.", m_statistics.totalMealsCooked);
+    spdlog::info("{} total meals consumed.", m_statistics.totalMealsEaten);
+    spdlog::info("{} total trees chopped.", m_statistics.totalTreesChopped);
 }

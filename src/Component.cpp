@@ -138,3 +138,8 @@ CThreat::CThreat(const Cords &c)
     exists = true;
     threatPos = c;
 }
+
+CFeats::CFeats(bool exists)
+{
+    this->exists = exists;
+}

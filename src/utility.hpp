@@ -24,6 +24,14 @@ enum entity_type
     wood
 };
 
+struct Statistics
+{
+    int totalDeersSlain = 0;
+    int totalTreesChopped = 0;
+    int totalMealsCooked = 0;
+    int totalMealsEaten = 0;
+};
+
 inline const char *entityTypeToString(entity_type type)
 {
     static const char *names[]{

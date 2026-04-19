@@ -5,7 +5,7 @@ ActionSystem::ActionSystem(DecisionSystem &decision,
 {
 }
 
-void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, std::vector<EntityPos> &pendingDrops)
+void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, std::vector<EntityPos> &pendingDrops, Statistics &statistics)
 {
     auto &campInv = em.getEntities(campfire).front()->get<CInventory>();
     auto &campFuel = em.getEntities(campfire).front()->get<CFuel>();
@@ -20,6 +20,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
             auto &inventory = e->get<CInventory>();
             auto &knowledge = e->get<CKnowledge>();
             auto &pos = e->get<CPosition>();
+            auto &feats = e->get<CFeats>();
 
             EntityState es = EntityState(e, campfireEntity);
             switch (m_decision.chooseNpcAction(es))
@@ -27,6 +28,8 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
             case Eat:
                 hunger.reset();
                 inventory.adjustItems(meal, -1);
+                ++feats.foodAte;
+                ++statistics.totalMealsEaten;
                 spdlog::info("[Tick: {:08d}] ID:{:08d} ate food.", tick, e->id());
                 break;
             case Cook:
@@ -36,6 +39,8 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 if (m_movement.nextToDestination(e))
                 {
                     spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", tick, e->id());
+                    ++feats.mealsCooked;
+                    ++statistics.totalMealsCooked;
                     inventory.adjustItems(raw_meat, -1);
                     campInv.adjustItems(meal, 1);
                     e->remove<CDestination>();
@@ -67,10 +72,10 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 }
                 break;
             case GatherFood:
-                gatherResource(tick, e, knowledge.m_closest_food, raw_meat, "meat");
+                gatherResource(tick, e, knowledge.m_closest_food, raw_meat, "meat", statistics);
                 break;
             case GatherWood:
-                gatherResource(tick, e, knowledge.m_closest_tree, wood, "wood");
+                gatherResource(tick, e, knowledge.m_closest_tree, wood, "wood", statistics);
                 break;
             case HuntDeer:
                 if (e->has<CTarget>())
@@ -91,7 +96,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     {
                         e->add<CTarget>(dE);
                         combat(tick, rng, e, dE);
-                        combatOutcome(tick, e, dE, pendingDrops);
+                        combatOutcome(tick, e, dE, pendingDrops, statistics);
                     }
                     else
                     {
@@ -152,7 +157,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
     }
 }
 
-void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, const std::string &logName)
+void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, const std::string &logName, Statistics &statistics)
 {
     auto &state = e->get<CState>();
     auto &hunger = e->get<CHunger>();
@@ -168,6 +173,11 @@ void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::opti
         auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
         if (dE)
         {
+            if (resourceType == wood)
+            {
+                ++e->get<CFeats>().choppedTrees;
+                ++statistics.totalTreesChopped;
+            }
             spdlog::info("[Tick: {:08d}] ID:{:08d} picked up {}.", tick, e->id(), logName);
             inventory.adjustItems(resourceType, 1);
 
@@ -254,7 +264,7 @@ void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Ent
     }
 }
 
-void ActionSystem::combatOutcome(int const tick, std::shared_ptr<Entity> &attacker, std::shared_ptr<Entity> &defender, std::vector<std::pair<entity_type, Cords>> &pendingDrops)
+void ActionSystem::combatOutcome(int const tick, std::shared_ptr<Entity> &attacker, std::shared_ptr<Entity> &defender, std::vector<std::pair<entity_type, Cords>> &pendingDrops, Statistics &statistics)
 {
     if (!defender->isAlive())
     {
@@ -262,6 +272,8 @@ void ActionSystem::combatOutcome(int const tick, std::shared_ptr<Entity> &attack
         attacker->remove<CTarget>();
         if (defender->type() == deer)
         {
+            ++attacker->get<CFeats>().slainDeer;
+            ++statistics.totalDeersSlain;
             pendingDrops.push_back({raw_meat, defender->get<CPosition>().cords});
             spdlog::info("[Tick: {:08d}] {}, ID:{:08d} slain {}, ID:{:08d}",
                          tick, entityTypeToString(attacker->type()), attacker->id(),

@@ -10,6 +10,7 @@ int main()
         engine.simulate();
     }
     printf("END\n");
+    engine.printFeats();
     fflush(stdout);
     return 0;
 }

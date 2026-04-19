@@ -131,3 +131,13 @@ struct CThreat : public Component
     CThreat() = default;
     CThreat(const Cords &c);
 };
+
+struct CFeats : public Component
+{
+    int slainDeer = 0;
+    int choppedTrees = 0;
+    int foodAte = 0;
+    int mealsCooked = 0;
+    CFeats() = default;
+    CFeats(bool exists);
+};
