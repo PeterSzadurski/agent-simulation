@@ -1,4 +1,6 @@
 #include "ActionSystem.h"
+#include "EngineLog.hpp"
+
 ActionSystem::ActionSystem(DecisionSystem &decision,
                            MovementSystem &movement,
                            Grid &grid) : m_decision(decision), m_movement(movement), m_grid(grid)
@@ -30,15 +32,14 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 inventory.adjustItems(meal, -1);
                 ++feats.foodAte;
                 ++statistics.totalMealsEaten;
-                spdlog::info("[Tick: {:08d}] ID:{:08d} ate food.", tick, e->id());
+                EngineLog::ateFood(tick, e->id());
                 break;
             case Cook:
                 e->add<CDestination>(knowledge.m_campfire);
                 state = STATE::walking_to;
-                // spdlog::info("[Tick: {:08d}] ID:{:08d} set destination to campfire.", m_tick, e->id());
                 if (m_movement.nextToDestination(e))
                 {
-                    spdlog::info("[Tick: {:08d}] ID:{:08d} Cooking food.", tick, e->id());
+                    EngineLog::cookedFood(tick, e->id());
                     ++feats.mealsCooked;
                     ++statistics.totalMealsCooked;
                     inventory.adjustItems(raw_meat, -1);
@@ -52,7 +53,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 state = STATE::walking_to;
                 if (m_movement.nextToDestination(e))
                 {
-                    spdlog::info("[Tick: {:08d}] ID:{:08d} picked up meal.", tick, e->id());
+                    EngineLog::pickedUpMeal(tick, e->id());
                     campInv.adjustItems(meal, -1);
                     inventory.adjustItems(meal, 1);
                     e->remove<CDestination>();
@@ -64,7 +65,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 state = STATE::walking_to;
                 if (m_movement.nextToDestination(e))
                 {
-                    spdlog::info("[Tick: {:08d}] ID:{:08d} refueling.", tick, e->id());
+                    EngineLog::refueled(tick, e->id());
                     inventory.adjustItems(wood, -1);
                     campInv.adjustItems(wood, 1);
                     e->remove<CDestination>();
@@ -136,7 +137,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
                     if (dE)
                     {
-                        spdlog::info("[Tick: {:08d}] ID:{:08d} {} ate grass.", tick, e->id(), entityTypeToString(e->type()));
+                        EngineLog::ateGrass(tick, e->id(), e->type());
                         dE->setAlive(false);
                         knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
                         hunger.reset();
@@ -166,7 +167,6 @@ void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::opti
 
     e->add<CDestination>(knowledgeTarget.value());
     state = walking_to;
-    spdlog::info("[Tick: {:08d}] ID:{:08d} set destination to {}.", tick, e->id(), logName);
     if (m_movement.nextToDestination(e))
     {
         auto &dest = e->get<CDestination>();
@@ -177,8 +177,9 @@ void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::opti
             {
                 ++e->get<CFeats>().choppedTrees;
                 ++statistics.totalTreesChopped;
+                EngineLog::treeChopped(tick, e->id());
             }
-            spdlog::info("[Tick: {:08d}] ID:{:08d} picked up {}.", tick, e->id(), logName);
+            EngineLog::pickedUp(tick, e->id(), logName);
             inventory.adjustItems(resourceType, 1);
 
             dE->setAlive(false);
@@ -235,9 +236,7 @@ void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Ent
     if (damA > damB)
     {
         int damage = damA - damB;
-        spdlog::info("[Tick: {:08d}] {}, ID:{:08d} dealt {} damage to {}, ID:{:08d}",
-                     tick, entityTypeToString(entity_a->type()), entity_a->id(), damage,
-                     entityTypeToString(entity_b->type()), entity_b->id());
+        EngineLog::dealtDamage(tick, entity_a->type(), entity_a->id(), damage, entity_b->type(), entity_b->id());
         stats_b.hitPoints -= damage;
         if (stats_b.hitPoints <= 0)
         {
@@ -247,9 +246,7 @@ void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Ent
     else if (damA < damB)
     {
         int damage = damB - damA;
-        spdlog::info("[Tick: {:08d}] {}, ID:{:08d} dealt {} damage to {}, ID:{:08d}",
-                     tick, entityTypeToString(entity_b->type()), entity_b->id(),
-                     damage, entityTypeToString(entity_a->type()), entity_a->id());
+        EngineLog::dealtDamage(tick, entity_b->type(), entity_b->id(), damage, entity_a->type(), entity_a->id());
         stats_a.hitPoints -= damage;
         if (stats_a.hitPoints <= 0)
         {
@@ -258,9 +255,8 @@ void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Ent
     }
     else
     {
-        spdlog::info("[Tick: {:08d}] {}, ID:{:08d} blocks an attack from {}, ID:{:08d}",
-                     tick, entityTypeToString(entity_b->type()), entity_b->id(),
-                     entityTypeToString(entity_a->type()), entity_a->id());
+        EngineLog::blockedAttack(tick, entity_b->type(), entity_b->id(),
+                                 entity_a->type(), entity_a->id());
     }
 }
 
@@ -270,21 +266,20 @@ void ActionSystem::combatOutcome(int const tick, std::shared_ptr<Entity> &attack
     {
         attacker->remove<CDestination>();
         attacker->remove<CTarget>();
+        attacker->get<CState>() = wander;
         if (defender->type() == deer)
         {
             ++attacker->get<CFeats>().slainDeer;
             ++statistics.totalDeersSlain;
             pendingDrops.push_back({raw_meat, defender->get<CPosition>().cords});
-            spdlog::info("[Tick: {:08d}] {}, ID:{:08d} slain {}, ID:{:08d}",
-                         tick, entityTypeToString(attacker->type()), attacker->id(),
-                         entityTypeToString(defender->type()), defender->id());
+            EngineLog::entitySlain(tick, attacker->type(), attacker->id(),
+                                   defender->type(), defender->id());
         }
     }
     if (!attacker->isAlive())
     {
-        spdlog::info("[Tick: {:08d}] {}, ID:{:08d} slain {}, ID:{:08d}",
-                     tick, entityTypeToString(defender->type()), defender->id(),
-                     entityTypeToString(attacker->type()), attacker->id());
+        EngineLog::entitySlain(tick, defender->type(), defender->id(),
+                               attacker->type(), attacker->id());
 
         // todo inventory drop
     }

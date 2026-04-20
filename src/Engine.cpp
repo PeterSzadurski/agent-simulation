@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include <iostream>
+#include "EngineLog.hpp"
 
 void Engine::simulate()
 {
@@ -67,7 +68,7 @@ void Engine::movementSystem()
     bool moved = false;
     for (auto e : m_entities.getEntities())
     {
-        if (!e->has<CState>() || !e->has<CPosition>())
+        if (!e->isAlive() || !e->has<CState>() || !e->has<CPosition>())
         {
             continue;
         }
@@ -128,11 +129,20 @@ void Engine::cleanGrid()
         if (!e->isAlive())
         {
             m_grid.remove(e);
-            spdlog::info("[Tick: {:08d}] ID:{:08d} removed.", m_tick, e->id());
+            EngineLog::entityRemoved(m_tick, e->id());
         }
     }
     for (auto &[type, pos] : m_pendingDrops)
     {
+        auto &existing = m_grid.at(pos.x, pos.y);
+        if (existing != nullptr)
+        {
+            spdlog::warn("[Tick: {:08d}] Drop conflict at {} — {} already there, dropping {}",
+                         m_tick, Cords(pos.x, pos.y).toStringPadded(),
+                         entityTypeToString(existing->type()),
+                         entityTypeToString(type));
+            continue;
+        }
         auto drop = m_entities.addEntity(type);
         drop->add<CPosition>(pos);
         m_grid.place(drop);
@@ -177,7 +187,7 @@ void Engine::spawnGrass()
     grass->add<CPosition>(0, 0);
     if (m_grid.placeRandom(grass, m_rng))
     {
-        spdlog::info("[Tick: {:08d}] Placed grass at {}", m_tick, grass->get<CPosition>().cords.toStringPadded());
+        EngineLog::placedAt(m_tick, grass->type(), grass->get<CPosition>().cords);
     }
 }
 
@@ -187,7 +197,7 @@ void Engine::spawnTree()
     tree->add<CPosition>(0, 0);
     if (m_grid.placeRandom(tree, m_rng))
     {
-        spdlog::info("[Tick: {:08d}] Placed Tree at ({:02d}, {:02d})", m_tick, tree->get<CPosition>().cords.x, tree->get<CPosition>().cords.y);
+        EngineLog::placedAt(m_tick, tree->type(), tree->get<CPosition>().cords);
     }
 }
 
@@ -245,13 +255,10 @@ void Engine::featSystem()
 
 void Engine::printFeats()
 {
-    spdlog::info("ID:{:08d} hunted {} deer.", m_bestHunter.first, m_bestHunter.second);
-    spdlog::info("ID:{:08d} cooked {} meals.", m_bestCook.first, m_bestCook.second);
-    spdlog::info("ID:{:08d} ate {} meals.", m_mostHungry.first, m_mostHungry.second);
-    spdlog::info("ID:{:08d} chopped {} trees.", m_bestLumberjack.first, m_bestLumberjack.second);
-
-    spdlog::info("{} total deer hunted.", m_statistics.totalDeersSlain);
-    spdlog::info("{} total meals cooked.", m_statistics.totalMealsCooked);
-    spdlog::info("{} total meals consumed.", m_statistics.totalMealsEaten);
-    spdlog::info("{} total trees chopped.", m_statistics.totalTreesChopped);
+    EngineLog::printFeats(
+        m_bestHunter.first, m_bestHunter.second,
+        m_bestCook.first, m_bestCook.second,
+        m_mostHungry.first, m_mostHungry.second,
+        m_bestLumberjack.first, m_bestLumberjack.second,
+        m_statistics);
 }

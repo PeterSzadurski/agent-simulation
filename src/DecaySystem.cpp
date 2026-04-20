@@ -1,4 +1,6 @@
 #include "DecaySystem.h"
+#include "EngineLog.hpp"
+
 DecaySystem::DecaySystem()
 {
 }
@@ -44,7 +46,6 @@ void DecaySystem::systemProcess(int tick, std::shared_ptr<Entity> e, CDecay &dec
     decay.decayTick();
     if (oldDecayValue != decay.getDecay())
     {
-        spdlog::info("[Tick: {:08d}] ID:{:08d} has ({:02d}) {} at pos {}", tick, e->id(), decay.getDecay(),
-                     debugStr, pos.cords.toStringPadded());
+        EngineLog::decayTick(tick, e->id(), decay.getDecay(), debugStr, pos.cords);
     }
 }
