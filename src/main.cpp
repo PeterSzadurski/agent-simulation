@@ -1,15 +1,20 @@
 #include "Engine.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-    Engine engine(12345, 25, 25);
+    uint32_t seed = 12345;
+    if (argc > 1)
+    {
+        seed = static_cast<uint32_t>(std::stoul(argv[1]));
+    }
+
+    Engine engine(seed, 25, 25);
     printf("BEGIN\n");
     fflush(stdout);
     while (engine.getTick() < 1000000)
     {
         engine.simulate();
     }
-    printf("END\n");
     engine.printFeats();
     fflush(stdout);
     return 0;

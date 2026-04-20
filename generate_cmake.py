@@ -2,7 +2,7 @@ import os
 
 PROJECT_NAME = "agent-simulation"
 SRC_DIR = "src"
-CMAKE_VERSION = "4.0"
+CMAKE_VERSION = "3.28"
 CPP_VERSION = "23"
 
 LINK_LIBS = [
