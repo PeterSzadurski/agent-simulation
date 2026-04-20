@@ -110,3 +110,11 @@ struct Seen
     }
     Seen() {}
 };
+template <>
+struct std::hash<Cords>
+{
+    size_t operator()(const Cords &c) const
+    {
+        return hash<int>()(c.x) ^ (hash<int>()(c.y) << 16);
+    }
+};

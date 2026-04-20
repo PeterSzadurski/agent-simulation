@@ -198,8 +198,8 @@ void ActionSystem::useNoticeBoard(EntityManager &em, CKnowledge &knowledge)
     auto &campKnowledge = em.getEntities(campfire).front()->get<CKnowledge>();
 
     // higher tick overrides
-    auto mergeMaps = [](std::map<Cords, Seen> &dest,
-                        const std::map<Cords, Seen> &src)
+    auto mergeMaps = [](std::unordered_map<Cords, Seen> &dest,
+                        const std::unordered_map<Cords, Seen> &src)
     {
         for (const auto &[pos, seen] : src)
         {

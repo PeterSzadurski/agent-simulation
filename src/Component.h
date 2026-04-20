@@ -70,7 +70,7 @@ class CKnowledge : public Component
 {
 
 public:
-    std::map<Cords, Seen> m_reported_positions;
+    std::unordered_map<Cords, Seen> m_reported_positions;
     std::optional<Cords> m_closest_meal;
     std::optional<Cords> m_closest_tree;
     std::optional<Cords> m_closest_food;
