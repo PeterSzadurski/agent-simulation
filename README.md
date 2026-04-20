@@ -68,6 +68,10 @@ recommended way to run this on other platforms.
 
 **Debian/Ubuntu:** `sudo apt-get install g++ cmake libspdlog-dev libfmt-dev`
 
+A `.vscode` folder is included with IntelliSense, debug, and build task 
+configuration. Requires the CMake Tools and C/C++ extensions. Also requires 
+`clang` for IntelliSense (`sudo pacman -S clang` on Arch).
+
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
