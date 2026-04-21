@@ -87,18 +87,18 @@ docker build -t agent-simulation .
 
 Run with a seed:
 ```bash
-docker run agent-simulation 123455
+docker run agent-simulation 12345
 ```
 
 Save output to a file:
 ```bash
-docker run agent-simulation 123455 > sim.log
+docker run agent-simulation 12345 > sim.log
 ```
 
 ## Seed
 
 The seed controls all random behaviour. Spawning, agent stats, wandering, and combat encounters.
-The same seed will always produce the same simulation. Defaults to `123455`.
+The same seed will always produce the same simulation. Defaults to `12345`.
 
 Determinism is guaranteed on the same platform and compiler. Output may differ 
 across architectures or compilers.
