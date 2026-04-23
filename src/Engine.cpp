@@ -15,12 +15,12 @@ void Engine::simulate()
     m_tick++;
 }
 
-Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0),
-                                                        m_grid(width, height), m_knowledge(m_grid),
-                                                        m_movement(m_grid), m_decision(), m_decay(),
-                                                        m_action(m_decision, m_movement, m_grid), m_width(width), m_height(height)
+Engine::Engine(uint32_t seed, int width, int height) : m_rng(seed), m_tick(0),
+                                                       m_grid(width, height), m_knowledge(m_grid),
+                                                       m_movement(m_grid), m_decision(), m_decay(),
+                                                       m_action(m_decision, m_movement, m_grid), m_width(width), m_height(height)
 {
-    spdlog::info("Init Engine");
+    spdlog_info("Init Engine");
 
     {
         auto campfire = m_entities.addEntity(entity_type::campfire);
@@ -98,7 +98,7 @@ void Engine::movementSystem()
             }
             if (moved)
             {
-                //   spdlog::info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
+                //   spdlog_info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
             }
         }
     }
@@ -137,10 +137,10 @@ void Engine::cleanGrid()
         auto &existing = m_grid.at(pos.x, pos.y);
         if (existing != nullptr)
         {
-            spdlog::warn("[Tick: {:08d}] Drop conflict at {} — {} already there, dropping {}",
-                         m_tick, Cords(pos.x, pos.y).toStringPadded(),
-                         entityTypeToString(existing->type()),
-                         entityTypeToString(type));
+            spdlog_warn("[Tick: {:08d}] Drop conflict at {} — {} already there, dropping {}",
+                        m_tick, Cords(pos.x, pos.y).toStringPadded(),
+                        entityTypeToString(existing->type()),
+                        entityTypeToString(type));
             continue;
         }
         auto drop = m_entities.addEntity(type);

@@ -43,7 +43,7 @@ class Engine
     void spawnTree();
 
 public:
-    Engine(u_int32_t seed, int width, int height);
+    Engine(uint32_t seed, int width, int height);
     int getTick();
     void simulate();
     void printFeats();
