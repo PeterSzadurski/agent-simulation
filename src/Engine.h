@@ -47,4 +47,5 @@ public:
     int getTick();
     void simulate();
     void printFeats();
+    const Statistics &getStatistics();
 };

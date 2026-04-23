@@ -34,7 +34,8 @@ def write_cmake(sources):
         for src in wasm_sources:
             file.write(f"   {src}\n")
         file.write("  )\n\n")
-        file.write("  target_compile_definitions(${PROJECT_NAME} PRIVATE __EMSCRIPTEN__)\n")     
+        file.write("  target_compile_definitions(${PROJECT_NAME} PRIVATE __EMSCRIPTEN__)\n")
+         
         file.write("  target_link_options(${PROJECT_NAME} PRIVATE\n")
         file.write("      -sWASM=1\n")
         file.write("      -sALLOW_MEMORY_GROWTH=1\n")
@@ -42,6 +43,7 @@ def write_cmake(sources):
         file.write("  )\n")
         file.write("  set_target_properties(${PROJECT_NAME} PROPERTIES\n")
         file.write('      SUFFIX ".js"\n')
+        file.write('      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/web"\n')
         file.write("  )\n")
         file.write("else()")
         

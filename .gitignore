@@ -42,3 +42,4 @@
 
 # build files
 /build
+/build-wasm

@@ -7,6 +7,7 @@ if(EMSCRIPTEN)
    src/DecaySystem.cpp
    src/Grid.cpp
    src/Engine.cpp
+   src/wasm_bindings.cpp
    src/KnowledgeSystem.cpp
    src/MovementSystem.cpp
    src/DecisionSystem.cpp
@@ -24,12 +25,14 @@ if(EMSCRIPTEN)
   )
   set_target_properties(${PROJECT_NAME} PROPERTIES
       SUFFIX ".js"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/web"
   )
 else()
 add_executable(${PROJECT_NAME}
    src/DecaySystem.cpp
    src/Grid.cpp
    src/Engine.cpp
+   src/wasm_bindings.cpp
    src/KnowledgeSystem.cpp
    src/MovementSystem.cpp
    src/DecisionSystem.cpp

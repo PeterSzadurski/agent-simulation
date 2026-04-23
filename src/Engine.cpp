@@ -262,3 +262,8 @@ void Engine::printFeats()
         m_bestLumberjack.first, m_bestLumberjack.second,
         m_statistics);
 }
+
+const Statistics &Engine::getStatistics()
+{
+    return m_statistics;
+}
