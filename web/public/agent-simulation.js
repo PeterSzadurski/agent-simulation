@@ -2522,6 +2522,44 @@ async function createWasm() {
     };
 
   
+  var installIndexedIterator = (proto, sizeMethodName, getMethodName) => {
+      const makeIterator = (size, getValue) => {
+        let index = 0;
+        return {
+          next() {
+            if (index >= size) {
+              return { done: true };
+            }
+            const current = index;
+            index++;
+            const value = getValue(current);
+            return { value, done: false };
+          },
+          [Symbol.iterator]() {
+            return this;
+          },
+        };
+      };
+  
+      if (!proto[Symbol.iterator]) {
+        proto[Symbol.iterator] = function() {
+          const size = this[sizeMethodName]();
+          return makeIterator(size, (i) => this[getMethodName](i));
+        };
+      }
+    };
+  
+  var __embind_register_iterable = (rawClassType, rawElementType, sizeMethodName, getMethodName) => {
+      sizeMethodName = AsciiToString(sizeMethodName);
+      getMethodName = AsciiToString(getMethodName);
+      whenDependentTypesAreResolved([], [rawClassType, rawElementType], (types) => {
+        const classType = types[0];
+        installIndexedIterator(classType.registeredClass.instancePrototype, sizeMethodName, getMethodName);
+        return [];
+      });
+    };
+
+  
   var __embind_register_memory_view = (rawType, dataTypeIndex, name) => {
       var typeMapping = [
         Int8Array,
@@ -2552,6 +2590,12 @@ async function createWasm() {
       }, {
         ignoreDuplicateRegistrations: true,
       });
+    };
+
+  
+  var EmValOptionalType = Object.assign({optional: true}, EmValType);;
+  var __embind_register_optional = (rawOptionalType, rawType) => {
+      registerType(rawOptionalType, EmValOptionalType);
     };
 
   
@@ -2910,6 +2954,113 @@ async function createWasm() {
         // TODO: assert if anything else is given?
         toWireType: (destructors, o) => undefined,
       });
+    };
+
+  var emval_methodCallers = [];
+  var emval_addMethodCaller = (caller) => {
+      var id = emval_methodCallers.length;
+      emval_methodCallers.push(caller);
+      return id;
+    };
+  
+  
+  
+  var requireRegisteredType = (rawType, humanName) => {
+      var impl = registeredTypes[rawType];
+      if (undefined === impl) {
+        throwBindingError(`${humanName} has unknown type ${getTypeName(rawType)}`);
+      }
+      return impl;
+    };
+  var emval_lookupTypes = (argCount, argTypes) => {
+      var a = new Array(argCount);
+      for (var i = 0; i < argCount; ++i) {
+        a[i] = requireRegisteredType(HEAPU32[(((argTypes)+(i*4))>>2)],
+                                     `parameter ${i}`);
+      }
+      return a;
+    };
+  
+  
+  var emval_returnValue = (toReturnWire, destructorsRef, handle) => {
+      var destructors = [];
+      var result = toReturnWire(destructors, handle);
+      if (destructors.length) {
+        // void, primitives and any other types w/o destructors don't need to allocate a handle
+        HEAPU32[((destructorsRef)>>2)] = Emval.toHandle(destructors);
+      }
+      return result;
+    };
+  
+  
+  var emval_symbols = {
+  };
+  
+  var getStringOrSymbol = (address) => {
+      var symbol = emval_symbols[address];
+      if (symbol === undefined) {
+        return AsciiToString(address);
+      }
+      return symbol;
+    };
+  var __emval_create_invoker = (argCount, argTypesPtr, kind) => {
+      var GenericWireTypeSize = 8;
+  
+      var [retType, ...argTypes] = emval_lookupTypes(argCount, argTypesPtr);
+      var toReturnWire = retType.toWireType.bind(retType);
+      var argFromPtr = argTypes.map(type => type.readValueFromPointer.bind(type));
+      argCount--; // remove the extracted return type
+  
+      var captures = {'toValue': Emval.toValue};
+      var args = argFromPtr.map((argFromPtr, i) => {
+        var captureName = `argFromPtr${i}`;
+        captures[captureName] = argFromPtr;
+        return `${captureName}(args${i ? '+' + i * GenericWireTypeSize : ''})`;
+      });
+      var functionBody;
+      switch (kind){
+        case 0:
+          functionBody = 'toValue(handle)';
+          break;
+        case 2:
+          functionBody = 'new (toValue(handle))';
+          break;
+        case 3:
+          functionBody = '';
+          break;
+        case 1:
+          captures['getStringOrSymbol'] = getStringOrSymbol;
+          functionBody = 'toValue(handle)[getStringOrSymbol(methodName)]';
+          break;
+      }
+      functionBody += `(${args})`;
+      if (!retType.isVoid) {
+        captures['toReturnWire'] = toReturnWire;
+        captures['emval_returnValue'] = emval_returnValue;
+        functionBody = `return emval_returnValue(toReturnWire, destructorsRef, ${functionBody})`;
+      }
+      functionBody = `return function (handle, methodName, destructorsRef, args) {
+${functionBody}
+}`;
+  
+      var invokerFunction = new Function(Object.keys(captures), functionBody)(...Object.values(captures));
+      var functionName = `methodCaller<(${argTypes.map(t => t.name)}) => ${retType.name}>`;
+      return emval_addMethodCaller(createNamedFunction(functionName, invokerFunction));
+    };
+
+
+  
+  
+  var __emval_invoke = (caller, handle, methodName, destructorsRef, args) => {
+      return emval_methodCallers[caller](handle, methodName, destructorsRef, args);
+    };
+
+  
+  
+  var __emval_run_destructors = (handle) => {
+      var destructors = Emval.toValue(handle);
+      runDestructors(destructors);
+      __emval_decref(handle);
     };
 
   var getHeapMax = () =>
@@ -3276,7 +3427,6 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   'stackTrace',
   'getNativeTypeSize',
   'getFunctionArgsName',
-  'requireRegisteredType',
   'createJsInvokerSignature',
   'getEnumValueType',
   'PureVirtualError',
@@ -3285,14 +3435,9 @@ Module['FS_createPreloadedFile'] = FS.createPreloadedFile;
   'getInheritedInstanceCount',
   'getLiveInheritedInstances',
   'enumReadValueFromPointer',
-  'installIndexedIterator',
   'setDelayFunction',
   'validateThis',
   'count_emval_handles',
-  'getStringOrSymbol',
-  'emval_returnValue',
-  'emval_lookupTypes',
-  'emval_addMethodCaller',
 ];
 missingLibrarySymbols.forEach(missingLibrarySymbol)
 
@@ -3532,6 +3677,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'getTypeName',
   'getFunctionName',
   'heap32VectorToArray',
+  'requireRegisteredType',
   'usesDestructorStack',
   'checkArgCount',
   'getRequiredArgCount',
@@ -3553,6 +3699,7 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'floatReadValueFromPointer',
   'assertIntegerRange',
   'readPointer',
+  'installIndexedIterator',
   'runDestructors',
   'craftInvokerFunction',
   'embind__requireFunction',
@@ -3585,8 +3732,12 @@ missingLibrarySymbols.forEach(missingLibrarySymbol)
   'emval_freelist',
   'emval_handles',
   'emval_symbols',
+  'getStringOrSymbol',
   'Emval',
+  'emval_returnValue',
+  'emval_lookupTypes',
   'emval_methodCallers',
+  'emval_addMethodCaller',
 ];
 unexportedSymbols.forEach(unexportedRuntimeSymbol);
 
@@ -3681,7 +3832,11 @@ var wasmImports = {
   /** @export */
   _embind_register_integer: __embind_register_integer,
   /** @export */
+  _embind_register_iterable: __embind_register_iterable,
+  /** @export */
   _embind_register_memory_view: __embind_register_memory_view,
+  /** @export */
+  _embind_register_optional: __embind_register_optional,
   /** @export */
   _embind_register_std_string: __embind_register_std_string,
   /** @export */
@@ -3692,6 +3847,14 @@ var wasmImports = {
   _embind_register_value_object_field: __embind_register_value_object_field,
   /** @export */
   _embind_register_void: __embind_register_void,
+  /** @export */
+  _emval_create_invoker: __emval_create_invoker,
+  /** @export */
+  _emval_decref: __emval_decref,
+  /** @export */
+  _emval_invoke: __emval_invoke,
+  /** @export */
+  _emval_run_destructors: __emval_run_destructors,
   /** @export */
   emscripten_resize_heap: _emscripten_resize_heap,
   /** @export */

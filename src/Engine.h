@@ -43,9 +43,10 @@ class Engine
     void spawnTree();
 
 public:
-    Engine(uint32_t seed, int width, int height);
+    Engine(uint32_t seed, int spawnRate, int width, int height);
     int getTick();
     void simulate();
     void printFeats();
     const Statistics &getStatistics();
+    std::vector<int> getGridSnapshot();
 };

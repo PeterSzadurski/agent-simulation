@@ -1,39 +1,13 @@
-<!DOCTYPE html>
-<html>
-<body>
-<script src="agent-simulation.js"></script>
-<script>
-Module.onRuntimeInitialized = () => {
-    const engine = new Module.Engine(12345, 25, 25);
-    console.log("Run wasm 2");
-    function loop() {
-        engine.simulate();
-        if(engine.getTick() >= 1000000) {
-            requestAnimationFrame(loop);
-            console.log(engine.getStatistics())
-            return;
-        }
-        if(engine.getTick() == 1000) {
-            requestAnimationFrame(loop);
-            console.log(engine.getStatistics())
-            return;
-        }
-        if(engine.getTick() == 10000) {
-            requestAnimationFrame(loop);
-            console.log(engine.getStatistics())
-            return;
-        }
-        if(engine.getTick() == 100000) {
-            requestAnimationFrame(loop);
-            console.log(engine.getStatistics())
-            return;
-        }
-        requestAnimationFrame(loop);
-    }
-    requestAnimationFrame(loop);
-    console.log(engine.getStatistics())
-    
-};
-</script>
-</body>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>web</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

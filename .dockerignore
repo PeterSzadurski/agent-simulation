@@ -2,3 +2,4 @@ build/
 build-wasm/
 .vscode/
 web/
+src/wasm_bindings.cpp

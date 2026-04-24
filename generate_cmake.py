@@ -22,6 +22,7 @@ def collect_sources():
 
 def write_cmake(sources):
     wasm_sources = [s for s in sources if "main.cpp" not in s] + WASM_SOURCES_EXTRA
+    local_sources = [s for s in sources if "src/wasm_bindings.cpp" not in s]
     
     with open ("CMakeLists.txt", "w") as file:
         file.write(f"cmake_minimum_required(VERSION {CMAKE_VERSION})\n")
@@ -43,7 +44,7 @@ def write_cmake(sources):
         file.write("  )\n")
         file.write("  set_target_properties(${PROJECT_NAME} PROPERTIES\n")
         file.write('      SUFFIX ".js"\n')
-        file.write('      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/web"\n')
+        file.write('      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/web/public"\n')
         file.write("  )\n")
         file.write("else()")
         
@@ -53,7 +54,7 @@ def write_cmake(sources):
             file.write(f'include_directories("{inc}")\n')
 
         file.write("\nadd_executable(${PROJECT_NAME}\n")
-        for src in sources:
+        for src in local_sources:
             file.write(f"   {src}\n")
         file.write(")\n\n")
 

@@ -15,10 +15,12 @@ void Engine::simulate()
     m_tick++;
 }
 
-Engine::Engine(uint32_t seed, int width, int height) : m_rng(seed), m_tick(0),
-                                                       m_grid(width, height), m_knowledge(m_grid),
-                                                       m_movement(m_grid), m_decision(), m_decay(),
-                                                       m_action(m_decision, m_movement, m_grid), m_width(width), m_height(height)
+Engine::Engine(uint32_t seed, int spawnRate, int width, int height) : m_rng(seed), m_tick(0),
+                                                                      m_grid(width, height), m_knowledge(m_grid),
+                                                                      m_movement(m_grid), m_decision(), m_decay(),
+                                                                      m_action(m_decision, m_movement,
+                                                                               m_grid),
+                                                                      m_width(width), m_height(height), m_spawnRate(spawnRate)
 {
     spdlog_info("Init Engine");
 
@@ -206,15 +208,15 @@ void Engine::spawnSystem()
     if (m_tick % m_spawnRate == 0)
     {
         int roll = randRange(1, 100);
-        if (roll <= 10)
+        if (roll <= 15)
         {
             spawnNpc();
         }
-        else if (roll <= 25)
+        else if (roll <= 30)
         {
             spawnDeer();
         }
-        else if (roll <= 75)
+        else if (roll <= 20)
         {
             spawnGrass();
         }
@@ -266,4 +268,18 @@ void Engine::printFeats()
 const Statistics &Engine::getStatistics()
 {
     return m_statistics;
+}
+
+std::vector<int> Engine::getGridSnapshot()
+{
+    std::vector<int> snapshot(m_width * m_height, 0);
+    for (int y = 0; y < m_height; y++)
+    {
+        for (int x = 0; x < m_width; x++)
+        {
+            auto &e = m_grid.at(x, y);
+            snapshot[y * m_width + x] = e ? static_cast<int>(e->type()) : 0;
+        }
+    }
+    return snapshot;
 }
