@@ -6,6 +6,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import SimStats from './SimStats';
 import SimStatsPanel from './SimStatsPanel';
+import EntityStats from './EntityStats';
+import EntityStatsPanel from './EntityStatsPanel';
 
 const darkTheme = createTheme({
   palette: {
@@ -19,6 +21,9 @@ function App() {
     const [tick, setTick] = useState(0);
     const [speed, setSpeed] = useState(1);
     const [simStats, setSimStats] = useState<SimStats>(new SimStats());
+    const [entityStats, setEntityStats] = useState<EntityStats>(new EntityStats);
+    const [hasSelectedEntity, setSelectedEntity] = useState(false);
+
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -27,9 +32,11 @@ function App() {
           <SimStatsPanel simStats={simStats}></SimStatsPanel>
         </Grid>
         <Grid size={4}>
-          <SimulationCanvas onTick={setTick} onSimStats={setSimStats}/>
+          <SimulationCanvas onTick={setTick} onSimStats={setSimStats} onEntityStats={setEntityStats} onSelectedEntity={setSelectedEntity} hasSelectedEntity={hasSelectedEntity}/>
         </Grid>
-        <Grid size={4}></Grid>
+        <Grid size={4}>
+          <EntityStatsPanel entityStats={entityStats}></EntityStatsPanel>
+        </Grid>
       </Grid>
     </ThemeProvider>
   )

@@ -271,14 +271,25 @@ void Engine::printFeats()
 
 EntityInspectData Engine::getEntityAt(int x, int y)
 {
-    EntityInspectData data;
     auto &e = m_grid.at(x, y);
+    return serializeEntity(e);
+}
+
+EntityInspectData Engine::serializeEntity(std::shared_ptr<Entity> e)
+{
+    EntityInspectData data;
     if (!e)
         return data;
-
+    m_selectedEntity = e;
+    data.id = e->id();
     data.exists = true;
-    data.x = x;
-    data.y = y;
+    data.alive = e->isAlive();
+    if (e->has<CPosition>())
+    {
+        auto &pos = e->get<CPosition>();
+        data.x = pos.cords.x;
+        data.y = pos.cords.y;
+    }
     data.type = static_cast<int>(e->type());
 
     if (e->has<CStats>())
@@ -364,6 +375,11 @@ EntityInspectData Engine::getEntityAt(int x, int y)
         }
     }
     return data;
+}
+
+EntityInspectData Engine::getSelectedEntity()
+{
+    return serializeEntity(m_selectedEntity);
 }
 
 const Statistics &Engine::getStatistics()

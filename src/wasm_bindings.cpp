@@ -14,11 +14,15 @@ EMSCRIPTEN_BINDINGS(simulation)
         .function("simulate", &Engine::simulate)
         .function("getTick", &Engine::getTick)
         .function("getStatistics", &Engine::getStatistics)
-        .function("getGridSnapshot", &Engine::getGridSnapshot);
+        .function("getGridSnapshot", &Engine::getGridSnapshot)
+        .function("getEntityAt", &Engine::getEntityAt)
+        .function("getSelectedEntity", &Engine::getSelectedEntity);
 
     emscripten::register_vector<int>("VectorInt");
 
     emscripten::value_object<EntityInspectData>("EntityInspectData")
+        .field("id", &EntityInspectData::id)
+        .field("alive", &EntityInspectData::alive)
         .field("exists", &EntityInspectData::exists)
         .field("x", &EntityInspectData::x)
         .field("y", &EntityInspectData::y)

@@ -12,26 +12,40 @@ declare global {
 interface Props {
     onTick: (tick: number) => void;
     onSimStats: (stats: any) => void;
+    onEntityStats: (entityStats: any) => void;
+    onSelectedEntity: (selectedEntity: boolean) => void;
+    hasSelectedEntity: boolean;
 }
 
-function SimulationCanvas({onTick, onSimStats}: Props) {
+
+
+function SimulationCanvas({onTick, onSimStats, onEntityStats, onSelectedEntity, hasSelectedEntity}: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    //const [tick, setTick] = useState(0);
     const [speed, setSpeed] = useState(1);
     const speedRef = useRef(1);
-    //const [simStats, setSimStats] = useState({
-    //    totalDeerSlain: 0,
-    //    totalMealsCooked: 0,
-    //    totalMealsEaten: 0,
-    //    totalTreesChopped: 0,
-    //})
+    const engineRef = useRef<any>(null);
+    const CELL = 20;
+    const hasSelectedEntityRef = useRef(false);
 
     const handleSpeedChange = (_event: Event, newValue: number) => {
         setSpeed(newValue);
         speedRef.current = newValue;
     };
 
-    
+    const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+        const rect = canvasRef.current!.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) / CELL);
+        const y = Math.floor((e.clientY - rect.top) / CELL);
+        const data = engineRef.current.getEntityAt(x, y);
+        if (data.exists) {
+            hasSelectedEntity
+            onSelectedEntity(true);
+            hasSelectedEntityRef.current = true;
+            onEntityStats({... data});
+
+    }
+};
+
     useEffect(() => {
         const script = document.createElement('script');
         script.src = '/agent-simulation.js';
@@ -40,13 +54,12 @@ function SimulationCanvas({onTick, onSimStats}: Props) {
             window.Module.onRuntimeInitialized = () => {
                 const width = 25;
                 const height = 25;
-                const engine = new window.Module.Engine(12345, 100, width, height);
+                engineRef.current = new window.Module.Engine(12345, 100, width, height);
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 if (!ctx) return;
 
-                const CELL = 20;
                 canvas.width = width * CELL;
                 canvas.height = height * CELL;
 
@@ -64,9 +77,9 @@ function SimulationCanvas({onTick, onSimStats}: Props) {
 
                 function render() {
                     for (let n = 0; n < speedRef.current; n++ ){
-                        engine.simulate();
+                        engineRef.current.simulate();
                     }
-                    const snapshot = engine.getGridSnapshot();
+                    const snapshot = engineRef.current.getGridSnapshot();
                     for (let i = 0; i < snapshot.size(); i++) {
                         const x = (i % width) * CELL;
                         const y = Math.floor(i / height) * CELL;
@@ -74,8 +87,12 @@ function SimulationCanvas({onTick, onSimStats}: Props) {
                         ctx!.fillRect(x, y, CELL, CELL);
                     }
                     snapshot.delete();
-                    onTick(engine.getTick());
-                    onSimStats({... engine.getStatistics()});
+                    onTick(engineRef.current.getTick());
+                    onSimStats({... engineRef.current.getStatistics()});
+                    if(hasSelectedEntityRef.current) {
+                        console.log("there is a selected entity");
+                        onEntityStats({... engineRef.current.getSelectedEntity()});
+                    }
                     requestAnimationFrame(render);
                 }
 
@@ -87,12 +104,13 @@ function SimulationCanvas({onTick, onSimStats}: Props) {
         return () => { document.body.removeChild(script); };
     }, []);
 
+    
+
     return <Card>
         <CardContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-            <canvas ref={canvasRef} />
+            <canvas ref={canvasRef} onClick={handleCanvasClick}/>
             <div>{speed}</div>
             <Slider aria-label="Volume" value={speed} onChange={handleSpeedChange} min={0} max={100} />
-            <div>{JSON.stringify(onSimStats)}</div>
         </CardContent>
     </Card> 
 }

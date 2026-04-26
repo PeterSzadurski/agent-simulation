@@ -11,9 +11,11 @@ typedef std::pair<int, int> NpcFeat;
 
 struct EntityInspectData
 {
+    int id = 0;
     int x = 0;
     int y = 0;
     int type = 0;
+    bool alive = false;
     bool exists = false;
 
     bool hasStats = false;
@@ -83,6 +85,7 @@ class Engine
     NpcFeat m_bestCook;
     NpcFeat m_mostHungry;
     Statistics m_statistics;
+    std::shared_ptr<Entity> m_selectedEntity;
 
     const size_t m_maxNpcs = 5;
     const size_t m_maxDeer = 15;
@@ -107,6 +110,8 @@ public:
     void simulate();
     void printFeats();
     EntityInspectData getEntityAt(int x, int y);
+    EntityInspectData serializeEntity(std::shared_ptr<Entity> e);
+    EntityInspectData getSelectedEntity();
     const Statistics &getStatistics();
     std::vector<int> getGridSnapshot();
 };
