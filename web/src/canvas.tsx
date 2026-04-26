@@ -1,5 +1,7 @@
+import { Card, CardContent } from '@mui/material';
 import Slider from '@mui/material/Slider';
 import { useEffect, useRef, useState } from 'react'
+
 
 declare global {
     interface Window {
@@ -7,16 +9,28 @@ declare global {
     }
 }
 
-function SimulationCanvas() {
+interface Props {
+    onTick: (tick: number) => void;
+    onSimStats: (stats: any) => void;
+}
+
+function SimulationCanvas({onTick, onSimStats}: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [tick, setTick] = useState(0);
+    //const [tick, setTick] = useState(0);
     const [speed, setSpeed] = useState(1);
     const speedRef = useRef(1);
+    //const [simStats, setSimStats] = useState({
+    //    totalDeerSlain: 0,
+    //    totalMealsCooked: 0,
+    //    totalMealsEaten: 0,
+    //    totalTreesChopped: 0,
+    //})
 
-    const handleSpeedChange = (event: Event, newValue: number) => {
+    const handleSpeedChange = (_event: Event, newValue: number) => {
         setSpeed(newValue);
         speedRef.current = newValue;
     };
+
     
     useEffect(() => {
         const script = document.createElement('script');
@@ -60,7 +74,8 @@ function SimulationCanvas() {
                         ctx!.fillRect(x, y, CELL, CELL);
                     }
                     snapshot.delete();
-                    setTick(engine.getTick());
+                    onTick(engine.getTick());
+                    onSimStats({... engine.getStatistics()});
                     requestAnimationFrame(render);
                 }
 
@@ -72,12 +87,14 @@ function SimulationCanvas() {
         return () => { document.body.removeChild(script); };
     }, []);
 
-    return <>
-    <canvas ref={canvasRef} />
-    <div>{tick}</div>
-    <div>{speed}</div>
-    <Slider aria-label="Volume" value={speed} onChange={handleSpeedChange} min={0} max={100} />
-    </> 
+    return <Card>
+        <CardContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+            <canvas ref={canvasRef} />
+            <div>{speed}</div>
+            <Slider aria-label="Volume" value={speed} onChange={handleSpeedChange} min={0} max={100} />
+            <div>{JSON.stringify(onSimStats)}</div>
+        </CardContent>
+    </Card> 
 }
 
 export default SimulationCanvas;

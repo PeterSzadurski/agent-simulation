@@ -210,19 +210,23 @@ void Engine::spawnSystem()
         int roll = randRange(1, 100);
         if (roll <= 15)
         {
-            spawnNpc();
+            if (m_entities.getEntities(npc).size() < m_maxNpcs)
+                spawnNpc();
         }
-        else if (roll <= 30)
+        else if (roll <= 35)
         {
-            spawnDeer();
+            if (m_entities.getEntities(deer).size() < m_maxNpcs)
+                spawnDeer();
         }
-        else if (roll <= 20)
+        else if (roll <= 75)
         {
-            spawnGrass();
+            if (m_entities.getEntities(grass).size() < m_maxNpcs)
+                spawnGrass();
         }
         else
         {
-            spawnTree();
+            if (m_entities.getEntities(tree).size() < m_maxNpcs)
+                spawnTree();
         }
     }
 }
@@ -263,6 +267,103 @@ void Engine::printFeats()
         m_mostHungry.first, m_mostHungry.second,
         m_bestLumberjack.first, m_bestLumberjack.second,
         m_statistics);
+}
+
+EntityInspectData Engine::getEntityAt(int x, int y)
+{
+    EntityInspectData data;
+    auto &e = m_grid.at(x, y);
+    if (!e)
+        return data;
+
+    data.exists = true;
+    data.x = x;
+    data.y = y;
+    data.type = static_cast<int>(e->type());
+
+    if (e->has<CStats>())
+    {
+        auto &s = e->get<CStats>();
+        data.hasStats = true;
+        data.hitPoints = s.hitPoints;
+        data.strength = s.strength;
+        data.speed = s.speed;
+    }
+    if (e->has<CHunger>())
+    {
+        data.hasHunger = true;
+        data.hunger = e->get<CHunger>().getDecay();
+    }
+    if (e->has<CFuel>())
+    {
+        data.hasFuel = true;
+        data.fuel = e->get<CFuel>().getDecay();
+    }
+    if (e->has<CState>())
+    {
+        data.hasState = true;
+        data.state = static_cast<int>(e->get<CState>().state);
+    }
+    if (e->has<CDestination>())
+    {
+        data.hasDestination = true;
+        data.destX = e->get<CDestination>().cords.x;
+        data.destY = e->get<CDestination>().cords.y;
+    }
+    if (e->has<CInventory>())
+    {
+        auto &inv = e->get<CInventory>();
+        data.hasInventory = true;
+        data.rawMeat = inv.itemCount(raw_meat);
+        data.meals = inv.itemCount(meal);
+        data.wood = inv.itemCount(wood);
+    }
+    if (e->has<CTarget>())
+    {
+        data.hasTarget = true;
+        auto &t = e->get<CTarget>().target->get<CPosition>();
+        data.targetX = t.cords.x;
+        data.targetY = t.cords.y;
+    }
+    if (e->has<CFeats>())
+    {
+        auto &f = e->get<CFeats>();
+        data.hasFeats = true;
+        data.slainDeer = f.slainDeer;
+        data.choppedTrees = f.choppedTrees;
+        data.foodAte = f.foodAte;
+        data.mealsCooked = f.mealsCooked;
+    }
+    if (e->has<CKnowledge>())
+    {
+        auto &k = e->get<CKnowledge>();
+        data.hasKnowledge = true;
+        if (k.m_closest_food.has_value())
+        {
+            data.hasClosestFood = true;
+            data.closestFoodX = k.m_closest_food->x;
+            data.closestFoodY = k.m_closest_food->y;
+        }
+        if (k.m_closest_tree.has_value())
+        {
+            data.hasClosestTree = true;
+            data.closestTreeX = k.m_closest_tree->x;
+            data.closestTreeY = k.m_closest_tree->y;
+        }
+        if (k.m_closest_deer.has_value())
+        {
+            data.hasClosestDeer = true;
+            data.closestDeerX = k.m_closest_deer->x;
+            data.closestDeerY = k.m_closest_deer->y;
+        }
+        if (k.m_closest_grass.has_value())
+        {
+            data.hasClosestGrass = true;
+            data.closestGrassX = k.m_closest_grass->x;
+            data.closestGrassY = k.m_closest_grass->y;
+        }
+    }
+    return data;
 }
 
 const Statistics &Engine::getStatistics()

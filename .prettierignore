@@ -1,0 +1,6 @@
+src/
+build/
+build-wasm/
+*.cpp
+*.h
+*.hpp
