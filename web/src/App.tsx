@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import SimulationCanvas from './canvas';
 import { Grid } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -8,7 +8,6 @@ import SimStatsPanel from './SimStatsPanel';
 import EntityStats from './EntityStats';
 import EntityStatsPanel from './EntityStatsPanel';
 import TickCounter from './TickCounter';
-import Legend from './Legend';
 
 const darkTheme = createTheme({
     palette: {
@@ -18,7 +17,6 @@ const darkTheme = createTheme({
 
 function App() {
     const [tick, setTick] = useState(0);
-    const [speed, setSpeed] = useState(1);
     const [simStats, setSimStats] = useState<SimStats>(new SimStats());
     const [entityStats, setEntityStats] = useState<EntityStats>(new EntityStats());
     const [hasSelectedEntity, setSelectedEntity] = useState(false);
