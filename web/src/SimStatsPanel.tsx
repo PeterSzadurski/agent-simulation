@@ -1,10 +1,11 @@
 import { Card, CardContent, Divider, Typography } from '@mui/material';
 import SimStats from './SimStats';
+import { memo } from 'react';
 
 interface Props {
     simStats: SimStats;
 }
-function SimStatsPanel({ simStats }: Props) {
+const SimStatsPanel = memo(function SimStatsPanel({ simStats }: Props) {
     return (
         <Card sx={{ height: '100%' }}>
             <CardContent>
@@ -17,5 +18,5 @@ function SimStatsPanel({ simStats }: Props) {
             </CardContent>
         </Card>
     );
-}
+});
 export default SimStatsPanel;

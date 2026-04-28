@@ -3,18 +3,18 @@ import {
     AccordionDetails,
     AccordionSummary,
     Card,
-    CardContent,
     Divider,
     Typography,
 } from '@mui/material';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import EntityStats from './EntityStats';
 import { ENTITY_NAMES, STATE_NAMES } from './Constants';
+import { memo } from 'react';
 interface Props {
     entityStats: EntityStats;
 }
 
-function EntityStatsPanel({ entityStats }: Props) {
+const EntityStatsPanel = memo(function EntityStatsPanel({ entityStats }: Props) {
     if (!entityStats.exists) {
         <></>;
     }
@@ -78,7 +78,7 @@ function EntityStatsPanel({ entityStats }: Props) {
             ) : (
                 <></>
             )}
-            {entityStats.hasKnowledge ? (
+            {entityStats.hasKnowledge && entityStats.type !== 5 ? (
                 <Accordion>
                     <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
                         <Typography component="span">Knowledge</Typography>
@@ -119,5 +119,5 @@ function EntityStatsPanel({ entityStats }: Props) {
             )}
         </Card>
     );
-}
+});
 export default EntityStatsPanel;
