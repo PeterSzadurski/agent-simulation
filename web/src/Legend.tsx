@@ -22,12 +22,22 @@ const Legend = memo(function Legend() {
                 </Typography>
                 <Typography>
                     <E entityType={1}>NPCs</E> hunt <E entityType={4}>Deer</E> for meat, cut down{' '}
-                    <E entityType={7}>Trees</E>
+                    <E entityType={7}>Trees </E>
                     to fuel the <E entityType={5}>Campfire</E> in order to cook meals.
                 </Typography>
                 <Typography>
                     <E entityType={4}>Deer</E> eat <E entityType={3}>Grass</E> and run from{' '}
                     <E entityType={1}>NPCs</E>
+                </Typography>
+                <Typography>
+                    Use the slider to control simulation speed, a speed of 0 will pause the
+                    simulation.
+                </Typography>
+                <Typography>
+                    For more details, view the{' '}
+                    <a target="_blank" href="https://github.com/PeterSzadurski/agent-simulation">
+                        readme
+                    </a>
                 </Typography>
             </CardContent>
         </Card>

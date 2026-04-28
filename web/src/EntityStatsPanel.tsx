@@ -19,7 +19,7 @@ function EntityStatsPanel({ entityStats }: Props) {
         <></>;
     }
     return (
-        <Card>
+        <Card sx={{ height: '100%' }}>
             <Typography variant="h6">Entity Stats</Typography>
             <Divider sx={{ mb: 1 }} />
             <Typography>Id: {entityStats.id}</Typography>

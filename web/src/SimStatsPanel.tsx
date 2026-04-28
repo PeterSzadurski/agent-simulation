@@ -6,7 +6,7 @@ interface Props {
 }
 function SimStatsPanel({ simStats }: Props) {
     return (
-        <Card>
+        <Card sx={{ height: '100%' }}>
             <CardContent>
                 <Typography variant="h6">Simulation Stats</Typography>
                 <Divider sx={{ mb: 1 }} />

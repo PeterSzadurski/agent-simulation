@@ -2,6 +2,7 @@ import { Card, CardContent } from '@mui/material';
 import Slider from '@mui/material/Slider';
 import { useEffect, useRef, useState } from 'react';
 import { ENTITY_COLORS } from './Constants';
+import Legend from './Legend';
 
 declare global {
     interface Window {
@@ -97,7 +98,7 @@ function SimulationCanvas({
     }, []);
 
     return (
-        <Card>
+        <Card sx={{ height: '100%' }}>
             <CardContent
                 sx={{
                     display: 'flex',
@@ -116,6 +117,7 @@ function SimulationCanvas({
                     max={100}
                 />
             </CardContent>
+            <Legend></Legend>
         </Card>
     );
 }

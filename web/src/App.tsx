@@ -26,7 +26,7 @@ function App() {
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
-            <Grid container spacing={1}>
+            <Grid container spacing={1} sx={{ p: 2 }}>
                 <Grid size={4}>
                     <SimStatsPanel simStats={simStats}></SimStatsPanel>
                 </Grid>
@@ -39,7 +39,6 @@ function App() {
                         hasSelectedEntity={hasSelectedEntity}
                     />
                     <TickCounter tick={tick}></TickCounter>
-                    <Legend></Legend>
                 </Grid>
                 <Grid size={4}>
                     <EntityStatsPanel entityStats={entityStats}></EntityStatsPanel>
