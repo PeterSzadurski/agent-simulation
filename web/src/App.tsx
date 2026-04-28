@@ -8,6 +8,7 @@ import SimStats from './SimStats';
 import SimStatsPanel from './SimStatsPanel';
 import EntityStats from './EntityStats';
 import EntityStatsPanel from './EntityStatsPanel';
+import TickCounter from './TickCounter';
 
 const darkTheme = createTheme({
   palette: {
@@ -33,6 +34,7 @@ function App() {
         </Grid>
         <Grid size={4}>
           <SimulationCanvas onTick={setTick} onSimStats={setSimStats} onEntityStats={setEntityStats} onSelectedEntity={setSelectedEntity} hasSelectedEntity={hasSelectedEntity}/>
+          <TickCounter tick={tick}></TickCounter>
         </Grid>
         <Grid size={4}>
           <EntityStatsPanel entityStats={entityStats}></EntityStatsPanel>

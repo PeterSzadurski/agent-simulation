@@ -90,7 +90,6 @@ function SimulationCanvas({onTick, onSimStats, onEntityStats, onSelectedEntity, 
                     onTick(engineRef.current.getTick());
                     onSimStats({... engineRef.current.getStatistics()});
                     if(hasSelectedEntityRef.current) {
-                        console.log("there is a selected entity");
                         onEntityStats({... engineRef.current.getSelectedEntity()});
                     }
                     requestAnimationFrame(render);
