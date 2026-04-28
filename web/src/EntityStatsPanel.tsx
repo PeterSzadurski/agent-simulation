@@ -106,7 +106,7 @@ const EntityStatsPanel = memo(function EntityStatsPanel({ entityStats }: Props) 
             {entityStats.hasFeats ? (
                 <Accordion>
                     <AccordionSummary expandIcon={<ArrowDropDownIcon />}>
-                        <Typography component="span">Knowledge</Typography>
+                        <Typography component="span">Feats</Typography>
                     </AccordionSummary>
                     <AccordionDetails>
                         <Typography>Trees Chopped: {entityStats.choppedTrees}</Typography>
