@@ -1,0 +1,4 @@
+*.js linguist-language=JavaScript linguist-detectable=false
+web/src/*.tsx linguist-language=TypeScript
+src/*.cpp linguist-language=C++
+src/*.h linguist-language=C++
