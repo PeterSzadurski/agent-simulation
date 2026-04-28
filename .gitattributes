@@ -2,3 +2,6 @@
 web/src/*.tsx linguist-language=TypeScript
 src/*.cpp linguist-language=C++
 src/*.h linguist-language=C++
+
+web/public/agent-simulation.js linguist-vendored=true
+web/public/coi-serviceworker.js linguist-vendored=true
