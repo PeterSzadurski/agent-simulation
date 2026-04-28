@@ -8,6 +8,7 @@ import SimStatsPanel from './SimStatsPanel';
 import EntityStats from './EntityStats';
 import EntityStatsPanel from './EntityStatsPanel';
 import TickCounter from './TickCounter';
+import Legend from './Legend';
 
 const darkTheme = createTheme({
     palette: {
@@ -38,6 +39,7 @@ function App() {
                         hasSelectedEntity={hasSelectedEntity}
                     />
                     <TickCounter tick={tick}></TickCounter>
+                    <Legend></Legend>
                 </Grid>
                 <Grid size={4}>
                     <EntityStatsPanel entityStats={entityStats}></EntityStatsPanel>
