@@ -1,28 +1,10 @@
 import { Accordion, AccordionDetails, AccordionSummary, Card, CardContent, Divider, Typography } from "@mui/material";
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import EntityStats from "./EntityStats";
+import { ENTITY_NAMES, STATE_NAMES } from "./Constants";
 interface Props {
     entityStats: EntityStats;
 }
-
-const ENTITY_NAMES: Record<number, string> = {
-    0: 'Empty',
-    1: 'NPC',
-    2: 'Meal',
-    3: 'Grass',
-    4: 'Deer',
-    5: 'Campfire',
-    6: 'Raw Meat',
-    7: 'Tree',
-    8: 'Wood',
-};
-
-const STATE_NAMES: Record<number, string> = {
-    0: 'Idle',
-    1: 'Wander',
-    2: 'Walking To',
-    3: 'Fleeing From',
-};
 
 function EntityStatsPanel({entityStats}: Props) {
     if (!entityStats.exists) {
