@@ -52,7 +52,8 @@ function SimulationCanvas({
 
     useEffect(() => {
         const script = document.createElement('script');
-        script.src = '/agent-simulation.js';
+        const base = import.meta.env.BASE_URL;
+        script.src = `${base}agent-simulation.js`;
         script.async = true;
         script.onload = () => {
             window.Module.onRuntimeInitialized = () => {
