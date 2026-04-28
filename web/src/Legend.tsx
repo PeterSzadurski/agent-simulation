@@ -34,7 +34,7 @@ const Legend = memo(function Legend() {
                     simulation.
                 </Typography>
                 <Typography>
-                    Click/Tap on an entity to view it's stats, inventory, knowledge, hunger, and
+                    Click/Tap on an entity to view its stats, inventory, knowledge, hunger, and
                     position in real time.
                 </Typography>
                 <Typography>
