@@ -1,21 +1,21 @@
-import { Card, CardContent, Divider, Typography } from "@mui/material";
-import SimStats from "./SimStats";
+import { Card, CardContent, Divider, Typography } from '@mui/material';
+import SimStats from './SimStats';
 
 interface Props {
     simStats: SimStats;
 }
-function SimStatsPanel({simStats}: Props) {
+function SimStatsPanel({ simStats }: Props) {
     return (
-    <Card>
-        <CardContent>
-            <Typography variant="h6">Simulation Stats</Typography>
-            <Divider sx={{ mb: 1 }} />
+        <Card>
+            <CardContent>
+                <Typography variant="h6">Simulation Stats</Typography>
+                <Divider sx={{ mb: 1 }} />
                 <Typography>Deer Slain: {simStats.totalDeersSlain}</Typography>
-    <Typography>Meals Cooked: {simStats.totalMealsCooked}</Typography>
-    <Typography>Meals Eaten: {simStats.totalMealsEaten}</Typography>
-    <Typography>Trees Chopped: {simStats.totalTreesChopped}</Typography>
-        </CardContent>
-    </Card>
-    )
+                <Typography>Meals Cooked: {simStats.totalMealsCooked}</Typography>
+                <Typography>Meals Eaten: {simStats.totalMealsEaten}</Typography>
+                <Typography>Trees Chopped: {simStats.totalTreesChopped}</Typography>
+            </CardContent>
+        </Card>
+    );
 }
-export default SimStatsPanel
+export default SimStatsPanel;

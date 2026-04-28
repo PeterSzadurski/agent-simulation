@@ -1,8 +1,7 @@
 import { Card, CardContent } from '@mui/material';
 import Slider from '@mui/material/Slider';
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react';
 import { ENTITY_COLORS } from './Constants';
-
 
 declare global {
     interface Window {
@@ -18,9 +17,13 @@ interface Props {
     hasSelectedEntity: boolean;
 }
 
-
-
-function SimulationCanvas({onTick, onSimStats, onEntityStats, onSelectedEntity, hasSelectedEntity}: Props) {
+function SimulationCanvas({
+    onTick,
+    onSimStats,
+    onEntityStats,
+    onSelectedEntity,
+    hasSelectedEntity,
+}: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [speed, setSpeed] = useState(1);
     const speedRef = useRef(1);
@@ -39,13 +42,12 @@ function SimulationCanvas({onTick, onSimStats, onEntityStats, onSelectedEntity, 
         const y = Math.floor((e.clientY - rect.top) / CELL);
         const data = engineRef.current.getEntityAt(x, y);
         if (data.exists) {
-            hasSelectedEntity
+            hasSelectedEntity;
             onSelectedEntity(true);
             hasSelectedEntityRef.current = true;
-            onEntityStats({... data});
-
-    }
-};
+            onEntityStats({ ...data });
+        }
+    };
 
     useEffect(() => {
         const script = document.createElement('script');
@@ -65,7 +67,7 @@ function SimulationCanvas({onTick, onSimStats, onEntityStats, onSelectedEntity, 
                 canvas.height = height * CELL;
 
                 function render() {
-                    for (let n = 0; n < speedRef.current; n++ ){
+                    for (let n = 0; n < speedRef.current; n++) {
                         engineRef.current.simulate();
                     }
                     const snapshot = engineRef.current.getGridSnapshot();
@@ -77,9 +79,9 @@ function SimulationCanvas({onTick, onSimStats, onEntityStats, onSelectedEntity, 
                     }
                     snapshot.delete();
                     onTick(engineRef.current.getTick());
-                    onSimStats({... engineRef.current.getStatistics()});
-                    if(hasSelectedEntityRef.current) {
-                        onEntityStats({... engineRef.current.getSelectedEntity()});
+                    onSimStats({ ...engineRef.current.getStatistics() });
+                    if (hasSelectedEntityRef.current) {
+                        onEntityStats({ ...engineRef.current.getSelectedEntity() });
                     }
                     requestAnimationFrame(render);
                 }
@@ -89,18 +91,33 @@ function SimulationCanvas({onTick, onSimStats, onEntityStats, onSelectedEntity, 
         };
         document.body.appendChild(script);
 
-        return () => { document.body.removeChild(script); };
+        return () => {
+            document.body.removeChild(script);
+        };
     }, []);
 
-    
-
-    return <Card>
-        <CardContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
-            <canvas ref={canvasRef} onClick={handleCanvasClick}/>
-            <div>{speed}</div>
-            <Slider aria-label="Volume" value={speed} onChange={handleSpeedChange} min={0} max={100} />
-        </CardContent>
-    </Card> 
+    return (
+        <Card>
+            <CardContent
+                sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexDirection: 'column',
+                }}
+            >
+                <canvas ref={canvasRef} onClick={handleCanvasClick} />
+                <div>{speed}</div>
+                <Slider
+                    aria-label="Volume"
+                    value={speed}
+                    onChange={handleSpeedChange}
+                    min={0}
+                    max={100}
+                />
+            </CardContent>
+        </Card>
+    );
 }
 
 export default SimulationCanvas;

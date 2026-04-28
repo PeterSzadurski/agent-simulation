@@ -5,4 +5,3 @@ class SimStats {
     totalTreesChopped = 0;
 }
 export default SimStats;
-
