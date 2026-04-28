@@ -10,6 +10,14 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+                {
+            "label": "Build WASM",
+            "type": "shell",
+            "command": "emcmake cmake -B build-wasm && cmake --build build-wasm",
+            "problemMatcher": [],
+            "group": "build",
+            "dependsOn": "Generate CMakeLists"
         }
     ]
 }

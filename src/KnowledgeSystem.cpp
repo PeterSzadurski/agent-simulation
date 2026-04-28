@@ -24,7 +24,7 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
             if ((x != pos.cords.x || y != pos.cords.y) && m_grid.inBounds(x, y))
             {
                 Cords cords = Cords(x, y);
-                if (m_grid.at(x, y) == nullptr && knowledge.m_reported_positions.contains(cords))
+                if (m_grid.at(x, y) == nullptr && knowledge.m_reported_positions.count(cords) > 0)
                 {
                     updateEntityKnowledge(pos, knowledge, currentTick, cords, entity_type::empty);
                 }

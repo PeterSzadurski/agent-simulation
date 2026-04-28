@@ -1,7 +1,7 @@
 # Agent Simulation
 
 A deterministic survival simulation built with an ECS and a priority based AI.
-Runs 1,000,000 ticks in 4-5 seconds on a Ryzen 5800X3D.
+Runs 1,000,000 ticks in 4-5 seconds (Debug) and under 1 second (Release, -02) on a Ryzen 5800X3D.
 
 ## The Agents
 **NPC:** Hunts deer and cuts down trees in order to cook meals at a central campfire.
@@ -42,8 +42,8 @@ maximum potential damage an agent can deal. Whoever rolls highest deals the
 difference as damage. A deer can kill an NPC if it rolls higher.
 
 ### Spawn System
-Every 500 ticks a new entity spawns. Grass is most common, new NPCs are most 
-rare. This keeps the world populated over the full simulation.
+Every 500 ticks (100 on WASM) a new entity spawns. Grass is most common, new NPCs are most 
+rare. This keeps the world populated over the full simulation. Entity types are capped in order to prevent the grid from being overrun with grass and trees over time, which don't contribute much to the simulation.
 
 
 ## Simulation Loop
@@ -68,14 +68,14 @@ recommended way to run this on other platforms.
 
 **Debian/Ubuntu:** `sudo apt-get install g++ cmake libspdlog-dev libfmt-dev`
 
-A `.vscode` folder is included with IntelliSense, debug, and build task 
+A `.vscode` folder is included with IntelliSense, debug, and build tasks for a binary and WASM 
 configuration. Requires the CMake Tools and C/C++ extensions. Also requires 
 `clang` for IntelliSense (`sudo pacman -S clang` on Arch).
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
-./build/agent-simulation 123455
+./build/agent-simulation 12345
 ```
 
 ## Running with Docker
@@ -106,14 +106,14 @@ across architectures or compilers.
 ## Verifying Correctness
 Run with the default seed and check the final summary matches:
 ```bash
-[2026-04-20 01:29:19.805] [info] ID:00000003 hunted 3 deer.
-[2026-04-20 01:29:19.805] [info] ID:00000003 cooked 2 meals.
-[2026-04-20 01:29:19.805] [info] ID:00000003 ate 3 meals.
-[2026-04-20 01:29:19.805] [info] ID:00000692 chopped 10 trees.
-[2026-04-20 01:29:19.805] [info] 46 total deer hunted.
-[2026-04-20 01:29:19.805] [info] 26 total meals cooked.
-[2026-04-20 01:29:19.805] [info] 23 total meals consumed.
-[2026-04-20 01:29:19.805] [info] 509 total trees chopped.
+[2026-04-28 04:29:02.801] [info] ID:00000003 hunted 3 deer.
+[2026-04-28 04:29:02.801] [info] ID:00000003 cooked 2 meals.
+[2026-04-28 04:29:02.801] [info] ID:00000003 ate 3 meals.
+[2026-04-28 04:29:02.801] [info] ID:00000710 chopped 6 trees.
+[2026-04-28 04:29:02.801] [info] 87 total deer hunted.
+[2026-04-28 04:29:02.801] [info] 38 total meals cooked.
+[2026-04-28 04:29:02.801] [info] 32 total meals consumed.
+[2026-04-28 04:29:02.801] [info] 424 total trees chopped.
 ```
 
 ## Output
@@ -124,6 +124,11 @@ Prints a summary at the end:
 - Total deer hunted, meals cooked, meals consumed, trees chopped
 
 The summary makes it easy to check if the simulation is repeatable without reading the entire log.
+
+## WASM + React Frontend
+A visual version of the simulation can be viewed at https://peterszadurski.github.io/agent-simulation/
+You may click on any entity to view it's current state, inventory, knowledge in real time.
+This version has a 5x faster spawn rate than normal in order to make it more visually interesting.
 
 ## Attribution
 

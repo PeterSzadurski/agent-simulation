@@ -1,7 +1,20 @@
 #pragma once
 #include <math.h>
 #include <string>
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#define spdlog_info(...)
+#define fmt_format(...)
+#define spdlog_warn(...)
+#else
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
+#define spdlog_info spdlog::info
+#define spdlog_warn spdlog::warn
+#define fmt_format fmt::format
+
+#endif
 
 enum STATE
 {
@@ -83,7 +96,11 @@ struct Cords
 
     std::string toStringPadded() const
     {
-        return fmt::format("({:02d},{:02d})", x, y);
+#ifdef __EMSCRIPTEN__
+        return "";
+#else
+        return fmt_format("({:02d},{:02d})", x, y);
+#endif
     }
 };
 

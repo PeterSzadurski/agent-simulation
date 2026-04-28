@@ -15,12 +15,14 @@ void Engine::simulate()
     m_tick++;
 }
 
-Engine::Engine(u_int32_t seed, int width, int height) : m_rng(seed), m_tick(0),
-                                                        m_grid(width, height), m_knowledge(m_grid),
-                                                        m_movement(m_grid), m_decision(), m_decay(),
-                                                        m_action(m_decision, m_movement, m_grid), m_width(width), m_height(height)
+Engine::Engine(uint32_t seed, int spawnRate, int width, int height) : m_rng(seed), m_tick(0),
+                                                                      m_grid(width, height), m_knowledge(m_grid),
+                                                                      m_movement(m_grid), m_decision(), m_decay(),
+                                                                      m_action(m_decision, m_movement,
+                                                                               m_grid),
+                                                                      m_width(width), m_height(height), m_spawnRate(spawnRate)
 {
-    spdlog::info("Init Engine");
+    spdlog_info("Init Engine");
 
     {
         auto campfire = m_entities.addEntity(entity_type::campfire);
@@ -98,7 +100,7 @@ void Engine::movementSystem()
             }
             if (moved)
             {
-                //   spdlog::info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
+                //   spdlog_info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
             }
         }
     }
@@ -137,10 +139,10 @@ void Engine::cleanGrid()
         auto &existing = m_grid.at(pos.x, pos.y);
         if (existing != nullptr)
         {
-            spdlog::warn("[Tick: {:08d}] Drop conflict at {} — {} already there, dropping {}",
-                         m_tick, Cords(pos.x, pos.y).toStringPadded(),
-                         entityTypeToString(existing->type()),
-                         entityTypeToString(type));
+            spdlog_warn("[Tick: {:08d}] Drop conflict at {} — {} already there, dropping {}",
+                        m_tick, Cords(pos.x, pos.y).toStringPadded(),
+                        entityTypeToString(existing->type()),
+                        entityTypeToString(type));
             continue;
         }
         auto drop = m_entities.addEntity(type);
@@ -206,21 +208,25 @@ void Engine::spawnSystem()
     if (m_tick % m_spawnRate == 0)
     {
         int roll = randRange(1, 100);
-        if (roll <= 10)
+        if (roll <= 15)
         {
-            spawnNpc();
+            if (m_entities.getEntities(npc).size() < m_maxNpcs)
+                spawnNpc();
         }
-        else if (roll <= 25)
+        else if (roll <= 35)
         {
-            spawnDeer();
+            if (m_entities.getEntities(deer).size() < m_maxNpcs)
+                spawnDeer();
         }
         else if (roll <= 75)
         {
-            spawnGrass();
+            if (m_entities.getEntities(grass).size() < m_maxNpcs)
+                spawnGrass();
         }
         else
         {
-            spawnTree();
+            if (m_entities.getEntities(tree).size() < m_maxNpcs)
+                spawnTree();
         }
     }
 }
@@ -261,4 +267,136 @@ void Engine::printFeats()
         m_mostHungry.first, m_mostHungry.second,
         m_bestLumberjack.first, m_bestLumberjack.second,
         m_statistics);
+}
+
+EntityInspectData Engine::getEntityAt(int x, int y)
+{
+    auto &e = m_grid.at(x, y);
+    return serializeEntity(e);
+}
+
+EntityInspectData Engine::serializeEntity(std::shared_ptr<Entity> e)
+{
+    EntityInspectData data;
+    if (!e)
+        return data;
+    m_selectedEntity = e;
+    data.id = e->id();
+    data.exists = true;
+    data.alive = e->isAlive();
+    if (e->has<CPosition>())
+    {
+        auto &pos = e->get<CPosition>();
+        data.x = pos.cords.x;
+        data.y = pos.cords.y;
+    }
+    data.type = static_cast<int>(e->type());
+
+    if (e->has<CStats>())
+    {
+        auto &s = e->get<CStats>();
+        data.hasStats = true;
+        data.hitPoints = s.hitPoints;
+        data.strength = s.strength;
+        data.speed = s.speed;
+    }
+    if (e->has<CHunger>())
+    {
+        data.hasHunger = true;
+        data.hunger = e->get<CHunger>().getDecay();
+    }
+    if (e->has<CFuel>())
+    {
+        data.hasFuel = true;
+        data.fuel = e->get<CFuel>().getDecay();
+    }
+    if (e->has<CState>())
+    {
+        data.hasState = true;
+        data.state = static_cast<int>(e->get<CState>().state);
+    }
+    if (e->has<CDestination>())
+    {
+        data.hasDestination = true;
+        data.destX = e->get<CDestination>().cords.x;
+        data.destY = e->get<CDestination>().cords.y;
+    }
+    if (e->has<CInventory>())
+    {
+        auto &inv = e->get<CInventory>();
+        data.hasInventory = true;
+        data.rawMeat = inv.itemCount(raw_meat);
+        data.meals = inv.itemCount(meal);
+        data.wood = inv.itemCount(wood);
+    }
+    if (e->has<CTarget>())
+    {
+        data.hasTarget = true;
+        auto &t = e->get<CTarget>().target->get<CPosition>();
+        data.targetX = t.cords.x;
+        data.targetY = t.cords.y;
+    }
+    if (e->has<CFeats>())
+    {
+        auto &f = e->get<CFeats>();
+        data.hasFeats = true;
+        data.slainDeer = f.slainDeer;
+        data.choppedTrees = f.choppedTrees;
+        data.foodAte = f.foodAte;
+        data.mealsCooked = f.mealsCooked;
+    }
+    if (e->has<CKnowledge>())
+    {
+        auto &k = e->get<CKnowledge>();
+        data.hasKnowledge = true;
+        if (k.m_closest_food.has_value())
+        {
+            data.hasClosestFood = true;
+            data.closestFoodX = k.m_closest_food->x;
+            data.closestFoodY = k.m_closest_food->y;
+        }
+        if (k.m_closest_tree.has_value())
+        {
+            data.hasClosestTree = true;
+            data.closestTreeX = k.m_closest_tree->x;
+            data.closestTreeY = k.m_closest_tree->y;
+        }
+        if (k.m_closest_deer.has_value())
+        {
+            data.hasClosestDeer = true;
+            data.closestDeerX = k.m_closest_deer->x;
+            data.closestDeerY = k.m_closest_deer->y;
+        }
+        if (k.m_closest_grass.has_value())
+        {
+            data.hasClosestGrass = true;
+            data.closestGrassX = k.m_closest_grass->x;
+            data.closestGrassY = k.m_closest_grass->y;
+        }
+    }
+    return data;
+}
+
+EntityInspectData Engine::getSelectedEntity()
+{
+    return serializeEntity(m_selectedEntity);
+}
+
+const Statistics &Engine::getStatistics()
+{
+    return m_statistics;
+}
+
+std::vector<int> Engine::getGridSnapshot()
+{
+    std::vector<int> snapshot(m_width * m_height, 0);
+    for (int y = 0; y < m_height; y++)
+    {
+        for (int x = 0; x < m_width; x++)
+        {
+            auto &e = m_grid.at(x, y);
+            snapshot[y * m_width + x] = e ? static_cast<int>(e->type()) : 0;
+        }
+    }
+    return snapshot;
 }

@@ -213,13 +213,21 @@ void ActionSystem::useNoticeBoard(EntityManager &em, CKnowledge &knowledge)
     mergeMaps(campKnowledge.m_reported_positions, knowledge.m_reported_positions);
     mergeMaps(knowledge.m_reported_positions, campKnowledge.m_reported_positions);
 
-    std::erase_if(knowledge.m_reported_positions,
-                  [](const auto &pair)
-                  { return pair.second.type == entity_type::empty; });
+    for (auto it = knowledge.m_reported_positions.begin(); it != knowledge.m_reported_positions.end();)
+    {
+        if (it->second.type == entity_type::empty)
+            it = knowledge.m_reported_positions.erase(it);
+        else
+            ++it;
+    }
 
-    std::erase_if(campKnowledge.m_reported_positions,
-                  [](const auto &pair)
-                  { return pair.second.type == entity_type::empty; });
+    for (auto it = campKnowledge.m_reported_positions.begin(); it != campKnowledge.m_reported_positions.end();)
+    {
+        if (it->second.type == entity_type::empty)
+            it = campKnowledge.m_reported_positions.erase(it);
+        else
+            ++it;
+    }
 }
 
 void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Entity> entity_a, std::shared_ptr<Entity> &entity_b)

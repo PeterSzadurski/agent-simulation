@@ -1,0 +1,9 @@
+build/
+build-wasm/
+*.cpp
+*.h
+*.hpp
+*.js
+*.json
+*.ts
+*.html
