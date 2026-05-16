@@ -89,6 +89,10 @@ void Engine::movementSystem()
                 if (!m_movement.nextToDestination(e))
                 {
                     moved = m_movement.moveTo(e);
+                    if (!moved)
+                    {
+                        moved = m_movement.moveRand(e, m_rng);
+                    }
                 }
                 break;
             case STATE::feeling_from:

@@ -225,7 +225,7 @@ var NODEFS = 'NODEFS is no longer included by default; build with -lnodefs.js';
 // perform assertions in shell.js after we set up out() and err(), as otherwise
 // if an assertion fails it cannot print the message
 
-assert(!ENVIRONMENT_IS_SHELL, 'shell environment detected but not enabled at build time.  Add `shell` to `-sENVIRONMENT` to enable.');
+assert(!ENVIRONMENT_IS_SHELL, 'shell environment detected but not enabled at build time (add `shell` to `-sENVIRONMENT` to enable)');
 
 // end include: shell.js
 
@@ -1955,11 +1955,11 @@ async function createWasm() {
         wasmTableMirror[funcPtr] = func = wasmTable.get(funcPtr);
       }
       /** @suppress {checkTypes} */
-      assert(wasmTable.get(funcPtr) == func, 'JavaScript-side Wasm function table mirror is out of date!');
+      assert(wasmTable.get(funcPtr) == func, 'table mirror is out of date');
       return func;
     };
   var embind__requireFunction = (signature, rawFunction, isAsync = false) => {
-      assert(!isAsync, 'Async bindings are only supported with JSPI.');
+      assert(!isAsync, 'async bindings are only supported with JSPI');
   
       signature = AsciiToString(signature);
   
@@ -2240,7 +2240,7 @@ async function createWasm() {
         throwBindingError("argTypes array size mismatch! Must at least get return value and 'this' types!");
       }
   
-      assert(!isAsync, 'Async bindings are only supported with JSPI.');
+      assert(!isAsync, 'async bindings are only supported with JSPI');
       var isClassMethodFunc = (argTypes[1] !== null && classType !== null);
   
       // Free functions with signature "void function()" do not need an invoker that marshalls between wire types.
@@ -2404,7 +2404,7 @@ async function createWasm() {
   var emval_handles = [0,1,,1,null,1,true,1,false,1];
   var __emval_decref = (handle) => {
       if (handle > 9 && 0 === --emval_handles[handle + 1]) {
-        assert(emval_handles[handle] !== undefined, `Decref for unallocated handle.`);
+        assert(emval_handles[handle] !== undefined, `decref for unallocated handle`);
         var value = emval_handles[handle];
         emval_handles[handle] = undefined;
         emval_freelist.push(handle);
@@ -2645,7 +2645,7 @@ async function createWasm() {
       return outIdx - startIdx;
     };
   var stringToUTF8 = (str, outPtr, maxBytesToWrite) => {
-      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF8 requires a third parameter that specifies the length of the output buffer');
       return stringToUTF8Array(str, HEAPU8, outPtr, maxBytesToWrite);
     };
   
@@ -2755,7 +2755,7 @@ async function createWasm() {
   var UTF16Decoder = globalThis.TextDecoder ? new TextDecoder('utf-16le') : undefined;;
   
   var UTF16ToString = (ptr, maxBytesToRead, ignoreNul) => {
-      assert(ptr % 2 == 0, 'Pointer passed to UTF16ToString must be aligned to two bytes!');
+      assert(ptr % 2 == 0, 'pointer passed to UTF16ToString must be 2-byte aligned');
       var idx = ((ptr)>>1);
       var endIdx = findStringEnd(HEAPU16, idx, maxBytesToRead / 2, ignoreNul);
   
@@ -2780,8 +2780,8 @@ async function createWasm() {
     };
   
   var stringToUTF16 = (str, outPtr, maxBytesToWrite) => {
-      assert(outPtr % 2 == 0, 'Pointer passed to stringToUTF16 must be aligned to two bytes!');
-      assert(typeof maxBytesToWrite == 'number', 'stringToUTF16(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      assert(outPtr % 2 == 0, 'pointer passed to stringToUTF16 must be 2-byte aligned');
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF16 requires a third parameter that specifies the length of the output buffer');
       // Backwards compatibility: if max bytes is not specified, assume unsafe unbounded write is allowed.
       maxBytesToWrite ??= 0x7FFFFFFF;
       if (maxBytesToWrite < 2) return 0;
@@ -2802,7 +2802,7 @@ async function createWasm() {
   var lengthBytesUTF16 = (str) => str.length*2;
   
   var UTF32ToString = (ptr, maxBytesToRead, ignoreNul) => {
-      assert(ptr % 4 == 0, 'Pointer passed to UTF32ToString must be aligned to four bytes!');
+      assert(ptr % 4 == 0, 'pointer passed to UTF32ToString must be 2-byte aligned');
       var str = '';
       var startIdx = ((ptr)>>2);
       // If maxBytesToRead is not passed explicitly, it will be undefined, and this
@@ -2816,8 +2816,8 @@ async function createWasm() {
     };
   
   var stringToUTF32 = (str, outPtr, maxBytesToWrite) => {
-      assert(outPtr % 4 == 0, 'Pointer passed to stringToUTF32 must be aligned to four bytes!');
-      assert(typeof maxBytesToWrite == 'number', 'stringToUTF32(str, outPtr, maxBytesToWrite) is missing the third parameter that specifies the length of the output buffer!');
+      assert(outPtr % 4 == 0, 'pointer passed to stringToUTF32 must be 4-byte aligned');
+      assert(typeof maxBytesToWrite == 'number', 'stringToUTF32 requires a third parameter that specifies the length of the output buffer');
       // Backwards compatibility: if max bytes is not specified, assume unsafe unbounded write is allowed.
       maxBytesToWrite ??= 0x7FFFFFFF;
       if (maxBytesToWrite < 4) return 0;
