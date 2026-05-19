@@ -33,6 +33,10 @@ namespace EngineLog
     {
         spdlog_info("──[Tick: {:08d}] ID:{:08d} chopped a tree.", tick, id);
     }
+    inline void deerButchered(int tick, size_t id)
+    {
+        spdlog_info("[Tick: {:08d}] ID:{:08d} butchered a deer.", tick, id);
+    }
 
     // Campfire actions
 

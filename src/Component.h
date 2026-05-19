@@ -76,6 +76,7 @@ public:
     std::optional<Cords> m_closest_food;
     std::optional<Cords> m_closest_grass;
     std::optional<Cords> m_closest_deer;
+    std::optional<Cords> m_closest_deer_corpse;
     Cords m_lastRecalcPosition;
     Cords m_campfire;
     CKnowledge() = default;

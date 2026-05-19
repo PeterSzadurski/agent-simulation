@@ -13,7 +13,8 @@ enum Action
     Flee,
     HuntDeer,
     None,
-    Wander
+    Wander,
+    ButcherDeer
 };
 
 struct EntityState
@@ -31,6 +32,7 @@ struct EntityState
     bool hasKnowledgeTree = false;
     bool hasKnowledgeGrass = false;
     bool hasKnowledgeDeer = false;
+    bool hasKnowledgeDeerCorpse = false;
     bool isAlreadyAtCampfire = false;
 
     std::optional<Cords> threatPosition;
@@ -48,6 +50,7 @@ class DecisionSystem
     int scoreEatGrass(const EntityState &es);
     int scoreFlee(const EntityState &es);
     int scoreHuntDeer(const EntityState &es);
+    int scoreButcherDeer(const EntityState &es);
 
 public:
     DecisionSystem();

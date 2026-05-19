@@ -26,6 +26,7 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
     hasKnowledgeTree = knowledge.m_closest_tree.has_value();
     hasKnowledgeGrass = knowledge.m_closest_grass.has_value();
     hasKnowledgeDeer = knowledge.m_closest_deer.has_value();
+    hasKnowledgeDeerCorpse = knowledge.m_closest_deer_corpse.has_value();
     isAlreadyAtCampfire = isNextToCord(pos.cords, knowledge.m_campfire);
 
     if (e->type() == deer)
@@ -126,6 +127,15 @@ int DecisionSystem::scoreHuntDeer(const EntityState &es)
 {
     if (es.hasKnowledgeDeer && !es.hasRawMeat)
     {
+        return 78;
+    }
+    return 0;
+}
+
+int DecisionSystem::scoreButcherDeer(const EntityState &es)
+{
+    if (es.hasKnowledgeDeerCorpse && !es.hasRawMeat && es.hasInventorySpace)
+    {
         return 79;
     }
     return 0;
@@ -151,6 +161,7 @@ Action DecisionSystem::chooseNpcAction(const EntityState &es)
         {RefuelCampfire, scoreRefuel(es)},
         {PickupMeal, scorePickupMeal(es)},
         {HuntDeer, scoreHuntDeer(es)},
+        {ButcherDeer, scoreButcherDeer(es)},
         {Action::Wander, 1}};
     return std::max_element(scores.begin(), scores.end(), [](auto &a, auto &b)
                             { return a.second < b.second; })

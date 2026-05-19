@@ -34,7 +34,8 @@ enum entity_type
     campfire,
     raw_meat,
     tree,
-    wood
+    wood,
+    deer_corpse
 };
 
 struct Statistics

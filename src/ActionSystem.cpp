@@ -78,6 +78,30 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
             case GatherWood:
                 gatherResource(tick, e, knowledge.m_closest_tree, wood, "wood", statistics);
                 break;
+            case ButcherDeer:
+                e->add<CDestination>(knowledge.m_closest_deer_corpse.value());
+                state = STATE::walking_to;
+                if (m_movement.nextToDestination(e))
+                {
+                    auto &dest = e->get<CDestination>();
+                    auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
+                    if (dE && dE->type() == deer_corpse && dE->isAlive())
+                    {
+                        dE->setAlive(false);
+                        knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
+                        knowledge.m_closest_deer_corpse.reset();
+                        pendingDrops.push_back({raw_meat, dest.cords});
+                        EngineLog::deerButchered(tick, e->id());
+                        e->remove<CDestination>();
+                    }
+                    else
+                    {
+                        knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
+                        knowledge.m_closest_deer_corpse.reset();
+                        e->remove<CDestination>();
+                    }
+                }
+                break;
             case HuntDeer:
                 if (e->has<CTarget>())
                 {
@@ -279,7 +303,7 @@ void ActionSystem::combatOutcome(int const tick, std::shared_ptr<Entity> &attack
         {
             ++attacker->get<CFeats>().slainDeer;
             ++statistics.totalDeersSlain;
-            pendingDrops.push_back({raw_meat, defender->get<CPosition>().cords});
+            pendingDrops.push_back({deer_corpse, defender->get<CPosition>().cords});
             EngineLog::entitySlain(tick, attacker->type(), attacker->id(),
                                    defender->type(), defender->id());
         }
