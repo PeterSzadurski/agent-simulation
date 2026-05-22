@@ -7,7 +7,7 @@ ActionSystem::ActionSystem(DecisionSystem &decision,
 {
 }
 
-void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, std::vector<EntityPos> &pendingDrops, Statistics &statistics)
+void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, std::vector<std::shared_ptr<Entity>> &pendingDrops, Statistics &statistics)
 {
     auto &campInv = em.getEntities(campfire).front()->get<CInventory>();
     auto &campFuel = em.getEntities(campfire).front()->get<CFuel>();
@@ -90,7 +90,13 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                         dE->setAlive(false);
                         knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
                         knowledge.m_closest_deer_corpse.reset();
-                        pendingDrops.push_back({raw_meat, dest.cords});
+                        std::uniform_int_distribution<int> meatDist(1, 3);
+                        int meatAmount = meatDist(rng);
+                        auto lootBag = em.addEntity(overflow_loot_bag);
+                        lootBag->add<CPosition>(dest.cords);
+                        lootBag->add<CInventory>(0);
+                        lootBag->get<CInventory>().adjustItems(raw_meat, meatDist(rng));
+                        pendingDrops.push_back(lootBag);
                         EngineLog::deerButchered(tick, e->id());
                         e->remove<CDestination>();
                     }
@@ -121,7 +127,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     {
                         e->add<CTarget>(dE);
                         combat(tick, rng, e, dE);
-                        combatOutcome(tick, e, dE, pendingDrops, statistics);
+                        combatOutcome(tick, em, e, dE, pendingDrops, statistics);
                     }
                     else
                     {
@@ -197,20 +203,49 @@ void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::opti
         auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
         if (dE)
         {
-            if (resourceType == wood)
+            if (dE->type() != overflow_loot_bag)
             {
-                ++e->get<CFeats>().choppedTrees;
-                ++statistics.totalTreesChopped;
-                EngineLog::treeChopped(tick, e->id());
-            }
-            EngineLog::pickedUp(tick, e->id(), logName);
-            inventory.adjustItems(resourceType, 1);
+                if (resourceType == wood)
+                {
+                    ++e->get<CFeats>().choppedTrees;
+                    ++statistics.totalTreesChopped;
+                    EngineLog::treeChopped(tick, e->id());
+                    inventory.adjustItems(resourceType, 1);
+                }
+                else if (resourceType == raw_meat)
+                {
+                    EngineLog::pickedUp(tick, e->id(), logName);
+                    inventory.adjustItems(resourceType, 1);
+                }
 
-            dE->setAlive(false);
-            knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
-            if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
+                dE->setAlive(false);
+                knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
+                if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
+                {
+                    knowledgeTarget.reset();
+                }
+            }
+            else
             {
-                knowledgeTarget.reset();
+                auto &lootBagInv = dE->get<CInventory>();
+                if (resourceType == raw_meat && lootBagInv.itemCount(resourceType) > 0)
+                {
+                    EngineLog::pickedUp(tick, e->id(), logName);
+                    inventory.adjustItems(resourceType, 1);
+                    lootBagInv.adjustItems(resourceType, -1);
+                    if (lootBagInv.itemCount(resourceType) == 0)
+                    {
+                        knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
+                        if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
+                        {
+                            knowledgeTarget.reset();
+                        }
+                    }
+                }
+                if (lootBagInv.totalCount() <= 0)
+                {
+                    dE->setAlive(false);
+                }
             }
         }
         e->remove<CDestination>();
@@ -292,7 +327,7 @@ void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Ent
     }
 }
 
-void ActionSystem::combatOutcome(int const tick, std::shared_ptr<Entity> &attacker, std::shared_ptr<Entity> &defender, std::vector<std::pair<entity_type, Cords>> &pendingDrops, Statistics &statistics)
+void ActionSystem::combatOutcome(int const tick, EntityManager &em, std::shared_ptr<Entity> &attacker, std::shared_ptr<Entity> &defender, std::vector<std::shared_ptr<Entity>> &pendingDrops, Statistics &statistics)
 {
     if (!defender->isAlive())
     {
@@ -303,7 +338,9 @@ void ActionSystem::combatOutcome(int const tick, std::shared_ptr<Entity> &attack
         {
             ++attacker->get<CFeats>().slainDeer;
             ++statistics.totalDeersSlain;
-            pendingDrops.push_back({deer_corpse, defender->get<CPosition>().cords});
+            auto corpse = em.addEntity(deer_corpse);
+            corpse->add<CPosition>(defender->get<CPosition>().cords);
+            pendingDrops.push_back(corpse);
             EngineLog::entitySlain(tick, attacker->type(), attacker->id(),
                                    defender->type(), defender->id());
         }

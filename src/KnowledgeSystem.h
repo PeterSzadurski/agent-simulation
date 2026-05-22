@@ -6,6 +6,7 @@ class KnowledgeSystem
 private:
     const Grid &m_grid;
     void updateEntityKnowledge(CPosition &pos, CKnowledge &knowledge, const int currentTick, Cords cords, entity_type type);
+    void updateIfNearer(const Cords &pos, const Cords &candidate, std::optional<Cords> &closest);
 
 public:
     KnowledgeSystem(const Grid &grid);

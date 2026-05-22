@@ -134,10 +134,15 @@ int DecisionSystem::scoreHuntDeer(const EntityState &es)
 
 int DecisionSystem::scoreButcherDeer(const EntityState &es)
 {
-    if (es.hasKnowledgeDeerCorpse && !es.hasRawMeat && es.hasInventorySpace)
+    if (es.hasKnowledgeDeerCorpse && !es.hasRawMeat)
     {
         return 79;
     }
+    return 0;
+}
+
+int DecisionSystem::scorePickupLoot(const EntityState &es)
+{
     return 0;
 }
 

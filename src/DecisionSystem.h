@@ -51,6 +51,7 @@ class DecisionSystem
     int scoreFlee(const EntityState &es);
     int scoreHuntDeer(const EntityState &es);
     int scoreButcherDeer(const EntityState &es);
+    int scorePickupLoot(const EntityState &es);
 
 public:
     DecisionSystem();

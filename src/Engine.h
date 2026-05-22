@@ -76,7 +76,7 @@ class Engine
     DecisionSystem m_decision;
     DecaySystem m_decay;
     ActionSystem m_action;
-    std::vector<EntityPos> m_pendingDrops;
+    std::vector<std::shared_ptr<Entity>> m_pendingDrops;
     const int m_width, m_height;
     const int m_spawnRate = 500;
 

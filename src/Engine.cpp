@@ -138,18 +138,19 @@ void Engine::cleanGrid()
             EngineLog::entityRemoved(m_tick, e->id());
         }
     }
-    for (auto &[type, pos] : m_pendingDrops)
+    for (auto &drop : m_pendingDrops)
     {
-        auto &existing = m_grid.at(pos.x, pos.y);
+        auto &pos = drop->get<CPosition>();
+        auto &existing = m_grid.at(pos.cords.x, pos.cords.y);
         if (existing != nullptr)
         {
             spdlog_warn("[Tick: {:08d}] Drop conflict at {} — {} already there, dropping {}",
-                        m_tick, Cords(pos.x, pos.y).toStringPadded(),
+                        m_tick, Cords(pos.cords).toStringPadded(),
                         entityTypeToString(existing->type()),
-                        entityTypeToString(type));
+                        entityTypeToString(drop->type()));
             continue;
         }
-        auto drop = m_entities.addEntity(type);
+        // auto drop = m_entities.addEntity(type);
         drop->add<CPosition>(pos);
         m_grid.place(drop);
     }

@@ -8,6 +8,23 @@ void KnowledgeSystem::updateEntityKnowledge(CPosition &pos, CKnowledge &knowledg
     knowledge.m_reported_positions[cords] = Seen(type, currentTick);
 }
 
+void KnowledgeSystem::updateIfNearer(const Cords &pos, const Cords &candidate, std::optional<Cords> &closest)
+{
+    if (!closest.has_value())
+    {
+        closest = candidate;
+    }
+    else
+    {
+        float currentDist = Distance2(pos, closest.value());
+        float candidateDist = Distance2(pos, candidate);
+        if (candidateDist < currentDist)
+        {
+            closest = candidate;
+        }
+    }
+}
+
 bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const int currentTick)
 {
     bool foundSomething = false;
@@ -31,7 +48,24 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
                 else if (m_grid.at(x, y) != nullptr)
                 {
                     auto seenEntity = m_grid.at(x, y);
-                    updateEntityKnowledge(pos, knowledge, currentTick, cords, seenEntity->type());
+
+                    // overflow_loot_bag can count as multiple closest entities at once due to having an inventory
+                    if (seenEntity->type() == overflow_loot_bag)
+                    {
+                        auto &inv = seenEntity->get<CInventory>();
+                        if (inv.itemCount(raw_meat) > 0)
+                        {
+                            updateIfNearer(pos.cords, cords, knowledge.m_closest_food);
+                        }
+                        //  if (inv.itemCount(meal) > 0)
+                        //  {
+                        //      updateIfNearer(pos.cords, cords, knowledge.m_closest_meal);
+                        //  }
+                    }
+                    else
+                    {
+                        updateEntityKnowledge(pos, knowledge, currentTick, cords, seenEntity->type());
+                    }
                     foundSomething = true;
                     lineOfSight.m_detectedEntities.push_back(EntityPos(seenEntity->type(), pos.cords));
                 }
@@ -70,52 +104,36 @@ void KnowledgeSystem::recalculateClosest(std::shared_ptr<Entity> entity)
         return;
     }
 
-    auto updateIfNearer = [&pos](const Cords &candidate, std::optional<Cords> &closest)
-    {
-        if (!closest.has_value())
-        {
-            closest = candidate;
-        }
-        else
-        {
-            float currentDist = Distance2(pos.cords, closest.value());
-            float candidateDist = Distance2(pos.cords, candidate);
-            if (candidateDist < currentDist)
-            {
-                closest = candidate;
-            }
-        }
-    };
-
     knowledge.m_lastRecalcPosition = pos.cords;
     knowledge.m_closest_food.reset();
     knowledge.m_closest_tree.reset();
     knowledge.m_closest_grass.reset();
     knowledge.m_closest_deer.reset();
     knowledge.m_closest_deer_corpse.reset();
+    knowledge.m_closest_loot.reset();
 
     for (const auto &[cords, seen] : knowledge.m_reported_positions)
     {
 
         if (seen.type == raw_meat)
         {
-            updateIfNearer(cords, knowledge.m_closest_food);
+            updateIfNearer(pos.cords, cords, knowledge.m_closest_food);
         }
         if (seen.type == tree)
         {
-            updateIfNearer(cords, knowledge.m_closest_tree);
+            updateIfNearer(pos.cords, cords, knowledge.m_closest_tree);
         }
         if (seen.type == grass)
         {
-            updateIfNearer(cords, knowledge.m_closest_grass);
+            updateIfNearer(pos.cords, cords, knowledge.m_closest_grass);
         }
         if (seen.type == deer)
         {
-            updateIfNearer(cords, knowledge.m_closest_deer);
+            updateIfNearer(pos.cords, cords, knowledge.m_closest_deer);
         }
         if (seen.type == deer_corpse)
         {
-            updateIfNearer(cords, knowledge.m_closest_deer_corpse);
+            updateIfNearer(pos.cords, cords, knowledge.m_closest_deer_corpse);
         }
     }
 }
