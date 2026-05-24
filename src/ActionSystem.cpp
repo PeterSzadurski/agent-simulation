@@ -73,7 +73,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 }
                 break;
             case GatherFood:
-                gatherResource(tick, e, knowledge.m_closest_food, raw_meat, "meat", statistics);
+                gatherLoot(tick, e, knowledge.m_closest_food, raw_meat, "meat", statistics);
                 break;
             case GatherWood:
                 gatherResource(tick, e, knowledge.m_closest_tree, wood, "wood", statistics);
@@ -203,51 +203,66 @@ void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::opti
         auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
         if (dE)
         {
-            if (dE->type() != overflow_loot_bag)
+            if (resourceType == wood)
             {
-                if (resourceType == wood)
-                {
-                    ++e->get<CFeats>().choppedTrees;
-                    ++statistics.totalTreesChopped;
-                    EngineLog::treeChopped(tick, e->id());
-                    inventory.adjustItems(resourceType, 1);
-                }
-                else if (resourceType == raw_meat)
-                {
-                    EngineLog::pickedUp(tick, e->id(), logName);
-                    inventory.adjustItems(resourceType, 1);
-                }
-
-                dE->setAlive(false);
-                knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
-                if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
-                {
-                    knowledgeTarget.reset();
-                }
+                ++e->get<CFeats>().choppedTrees;
+                ++statistics.totalTreesChopped;
+                EngineLog::treeChopped(tick, e->id());
+                inventory.adjustItems(resourceType, 1);
             }
-            else
+            else if (resourceType == raw_meat)
             {
-                auto &lootBagInv = dE->get<CInventory>();
-                if (resourceType == raw_meat && lootBagInv.itemCount(resourceType) > 0)
-                {
-                    EngineLog::pickedUp(tick, e->id(), logName);
-                    inventory.adjustItems(resourceType, 1);
-                    lootBagInv.adjustItems(resourceType, -1);
-                    if (lootBagInv.itemCount(resourceType) == 0)
-                    {
-                        knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
-                        if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
-                        {
-                            knowledgeTarget.reset();
-                        }
-                    }
-                }
-                if (lootBagInv.totalCount() <= 0)
-                {
-                    dE->setAlive(false);
-                }
+                EngineLog::pickedUp(tick, e->id(), logName);
+                inventory.adjustItems(resourceType, 1);
+            }
+
+            dE->setAlive(false);
+            knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
+            if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
+            {
+                knowledgeTarget.reset();
             }
         }
+        e->remove<CDestination>();
+    }
+}
+
+void ActionSystem::gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, const std::string &logName, Statistics &statistics)
+{
+    auto &state = e->get<CState>();
+    auto &hunger = e->get<CHunger>();
+    auto &inventory = e->get<CInventory>();
+    auto &knowledge = e->get<CKnowledge>();
+
+    e->add<CDestination>(knowledgeTarget.value());
+    state = walking_to;
+    if (m_movement.nextToDestination(e))
+    {
+        auto &dest = e->get<CDestination>();
+        auto &dE = m_grid.at(dest.cords.x, dest.cords.y);
+        if (dE)
+        {
+            auto &lootBagInv = dE->get<CInventory>();
+            if (resourceType == raw_meat && lootBagInv.itemCount(resourceType) > 0)
+            {
+                EngineLog::pickedUp(tick, e->id(), logName);
+                inventory.adjustItems(resourceType, 1);
+                lootBagInv.adjustItems(resourceType, -1);
+                if (lootBagInv.itemCount(resourceType) == 0)
+                {
+                    knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
+                    if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
+                    {
+                        knowledgeTarget.reset();
+                    }
+                }
+            }
+            if (lootBagInv.totalCount() <= 0)
+            {
+                dE->setAlive(false);
+            }
+        }
+
         e->remove<CDestination>();
     }
 }
