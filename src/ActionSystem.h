@@ -6,8 +6,8 @@
 class ActionSystem
 {
 private:
-    void gatherResource(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, const std::string &logName, Statistics &statistics);
-    void gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, const std::string &logName, Statistics &statistics);
+    void gatherResource(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, Statistics &statistics);
+    void gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, Statistics &statistics);
     void useNoticeBoard(EntityManager &em, CKnowledge &knowledge);
     MovementSystem &m_movement;
     DecisionSystem &m_decision;

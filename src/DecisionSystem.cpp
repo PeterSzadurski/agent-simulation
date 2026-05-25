@@ -22,10 +22,12 @@ EntityState::EntityState(std::shared_ptr<Entity> e, std::shared_ptr<Entity> camp
 
     isCampfireFueled = !campfire->get<CFuel>().isDecayed();
 
+    hasKnowledgeMeal = knowledge.m_closest_meal.has_value();
     hasKnowledgeRawMeat = knowledge.m_closest_food.has_value();
     hasKnowledgeTree = knowledge.m_closest_tree.has_value();
     hasKnowledgeGrass = knowledge.m_closest_grass.has_value();
     hasKnowledgeDeer = knowledge.m_closest_deer.has_value();
+    hasKnowledgeLoot = knowledge.m_closest_loot.has_value();
     hasKnowledgeDeerCorpse = knowledge.m_closest_deer_corpse.has_value();
     isAlreadyAtCampfire = isNextToCord(pos.cords, knowledge.m_campfire);
 
@@ -92,6 +94,14 @@ int DecisionSystem::scoreGatherWood(const EntityState &es)
         return 85;
     return 0;
 }
+int DecisionSystem::scorePickupWood(const EntityState &es)
+{
+    if (es.hasKnowledgeWood && es.hasInventorySpace && !es.hasWood && !es.isCampfireFueled)
+    {
+        return 85;
+    }
+    return 0;
+}
 
 int DecisionSystem::scoreTransferToCampfire(const EntityState &es)
 {
@@ -100,7 +110,7 @@ int DecisionSystem::scoreTransferToCampfire(const EntityState &es)
     return 0;
 }
 
-int DecisionSystem::scorePickupMeal(const EntityState &es)
+int DecisionSystem::scorePickupCampMeal(const EntityState &es)
 {
     int baseScore = 95;
     if (es.hasCampMeals && !es.hasMeals)
@@ -110,6 +120,15 @@ int DecisionSystem::scorePickupMeal(const EntityState &es)
             return baseScore + 50;
         }
         return baseScore;
+    }
+    return 0;
+}
+
+int DecisionSystem::scorePickupMeal(const EntityState &es)
+{
+    if (es.hasKnowledgeMeal && !es.hasMeals)
+    {
+        return 95;
     }
     return 0;
 }
@@ -143,6 +162,10 @@ int DecisionSystem::scoreButcherDeer(const EntityState &es)
 
 int DecisionSystem::scorePickupLoot(const EntityState &es)
 {
+    if (es.hasKnowledgeLoot && es.hasInventorySpace && !es.isHungry)
+    {
+        return 25;
+    }
     return 0;
 }
 
@@ -160,11 +183,14 @@ Action DecisionSystem::chooseNpcAction(const EntityState &es)
     std::vector<std::pair<Action, int>> scores = {
         {Eat, scoreEat(es)},
         {Cook, scoreCook(es)},
-        {GatherWood, scoreGatherWood(es)},
+        {CutTree, scoreGatherWood(es)},
         {GatherFood, scoreGatherFood(es)},
         {TransferToCampfire, scoreTransferToCampfire(es)},
         {RefuelCampfire, scoreRefuel(es)},
+        {PickupCampMeal, scorePickupCampMeal(es)},
         {PickupMeal, scorePickupMeal(es)},
+        {PickupWood, scorePickupWood(es)},
+        {PickupLoot, scorePickupLoot(es)},
         {HuntDeer, scoreHuntDeer(es)},
         {ButcherDeer, scoreButcherDeer(es)},
         {Action::Wander, 1}};

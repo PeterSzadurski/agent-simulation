@@ -57,10 +57,14 @@ bool KnowledgeSystem::updateLineOfSight(std::shared_ptr<Entity> entity, const in
                         {
                             updateIfNearer(pos.cords, cords, knowledge.m_closest_food);
                         }
-                        //  if (inv.itemCount(meal) > 0)
-                        //  {
-                        //      updateIfNearer(pos.cords, cords, knowledge.m_closest_meal);
-                        //  }
+                        if (inv.itemCount(meal) > 0)
+                        {
+                            updateIfNearer(pos.cords, cords, knowledge.m_closest_meal);
+                        }
+                        if (inv.itemCount(wood) > 0)
+                        {
+                            updateIfNearer(pos.cords, cords, knowledge.m_closest_meal);
+                        }
                     }
                     else
                     {
@@ -134,6 +138,10 @@ void KnowledgeSystem::recalculateClosest(std::shared_ptr<Entity> entity)
         if (seen.type == deer_corpse)
         {
             updateIfNearer(pos.cords, cords, knowledge.m_closest_deer_corpse);
+        }
+        if (seen.type == overflow_loot_bag)
+        {
+            updateIfNearer(pos.cords, cords, knowledge.m_closest_loot);
         }
     }
 }

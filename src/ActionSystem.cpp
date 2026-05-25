@@ -48,7 +48,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     useNoticeBoard(em, knowledge);
                 }
                 break;
-            case PickupMeal:
+            case PickupCampMeal:
                 e->add<CDestination>(knowledge.m_campfire);
                 state = STATE::walking_to;
                 if (m_movement.nextToDestination(e))
@@ -73,10 +73,16 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 }
                 break;
             case GatherFood:
-                gatherLoot(tick, e, knowledge.m_closest_food, raw_meat, "meat", statistics);
+                gatherLoot(tick, e, knowledge.m_closest_food, raw_meat, statistics);
                 break;
-            case GatherWood:
-                gatherResource(tick, e, knowledge.m_closest_tree, wood, "wood", statistics);
+            case PickupWood:
+                gatherLoot(tick, e, knowledge.m_closest_food, wood, statistics);
+                break;
+            case PickupMeal:
+                gatherLoot(tick, e, knowledge.m_closest_meal, meal, statistics);
+                break;
+            case CutTree:
+                gatherResource(tick, e, knowledge.m_closest_tree, wood, statistics);
                 break;
             case ButcherDeer:
                 e->add<CDestination>(knowledge.m_closest_deer_corpse.value());
@@ -188,7 +194,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
     }
 }
 
-void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, const std::string &logName, Statistics &statistics)
+void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, Statistics &statistics)
 {
     auto &state = e->get<CState>();
     auto &hunger = e->get<CHunger>();
@@ -208,14 +214,8 @@ void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::opti
                 ++e->get<CFeats>().choppedTrees;
                 ++statistics.totalTreesChopped;
                 EngineLog::treeChopped(tick, e->id());
-                inventory.adjustItems(resourceType, 1);
             }
-            else if (resourceType == raw_meat)
-            {
-                EngineLog::pickedUp(tick, e->id(), logName);
-                inventory.adjustItems(resourceType, 1);
-            }
-
+            inventory.adjustItems(resourceType, 1);
             dE->setAlive(false);
             knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
             if (knowledgeTarget.has_value() && knowledgeTarget.value() == dest.cords)
@@ -227,7 +227,7 @@ void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::opti
     }
 }
 
-void ActionSystem::gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, const std::string &logName, Statistics &statistics)
+void ActionSystem::gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, Statistics &statistics)
 {
     auto &state = e->get<CState>();
     auto &hunger = e->get<CHunger>();
@@ -243,9 +243,9 @@ void ActionSystem::gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional
         if (dE)
         {
             auto &lootBagInv = dE->get<CInventory>();
-            if (resourceType == raw_meat && lootBagInv.itemCount(resourceType) > 0)
+            if (lootBagInv.itemCount(resourceType) > 0)
             {
-                EngineLog::pickedUp(tick, e->id(), logName);
+                EngineLog::pickedUp(tick, e->id(), resourceType);
                 inventory.adjustItems(resourceType, 1);
                 lootBagInv.adjustItems(resourceType, -1);
                 if (lootBagInv.itemCount(resourceType) == 0)
@@ -260,6 +260,7 @@ void ActionSystem::gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional
             if (lootBagInv.totalCount() <= 0)
             {
                 dE->setAlive(false);
+                knowledge.m_closest_loot.reset();
             }
         }
 
@@ -365,6 +366,10 @@ void ActionSystem::combatOutcome(int const tick, EntityManager &em, std::shared_
         EngineLog::entitySlain(tick, defender->type(), defender->id(),
                                attacker->type(), attacker->id());
 
-        // todo inventory drop
+        auto loot = em.addEntity(overflow_loot_bag);
+        loot->add<CPosition>(attacker->get<CPosition>().cords);
+        loot->add<CInventory>(0);
+        loot->get<CInventory>() = attacker->get<CInventory>();
+        pendingDrops.push_back(loot);
     }
 }

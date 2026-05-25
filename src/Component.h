@@ -78,6 +78,7 @@ public:
     std::optional<Cords> m_closest_deer;
     std::optional<Cords> m_closest_deer_corpse;
     std::optional<Cords> m_closest_loot;
+    std::optional<Cords> m_closest_wood;
 
     Cords m_lastRecalcPosition;
     Cords m_campfire;

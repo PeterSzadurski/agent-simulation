@@ -24,14 +24,14 @@ namespace EngineLog
         spdlog_info("[Tick: {:08d}] ID:{:08d} set destination to {}.", tick, id, target);
     }
 
-    inline void pickedUp(int tick, size_t id, const std::string &item)
+    inline void pickedUp(int tick, size_t id, entity_type type)
     {
-        spdlog_info("[Tick: {:08d}] ID:{:08d} picked up {}.", tick, id, item);
+        spdlog_info("[Tick: {:08d}] ID:{:08d} picked up {}.", tick, id, entityTypeToString(type));
     }
 
     inline void treeChopped(int tick, size_t id)
     {
-        spdlog_info("──[Tick: {:08d}] ID:{:08d} chopped a tree.", tick, id);
+        spdlog_info("[Tick: {:08d}] ID:{:08d} chopped a tree.", tick, id);
     }
     inline void deerButchered(int tick, size_t id)
     {
