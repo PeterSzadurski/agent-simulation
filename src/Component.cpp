@@ -1,5 +1,4 @@
 #include "Component.h"
-
 Component::Component()
 {
     exists = false;
@@ -96,7 +95,8 @@ CInventory::CInventory(int maxItems) : m_maxItems(maxItems)
     exists = true;
     m_items = {{raw_meat, 0},
                {meal, 0},
-               {wood, 0}};
+               {wood, 0},
+               {pelt, 0}};
 }
 
 bool CInventory::adjustItems(entity_type e_type, int value)
@@ -126,6 +126,34 @@ const bool CInventory::hasRoom()
 const int CInventory::itemCount(entity_type e_type)
 {
     return m_items[e_type];
+}
+
+bool CInventory::transferTo(CInventory &other)
+{
+    for (auto &[type, count] : m_items)
+    {
+        if (count > 0)
+        {
+            if (!other.adjustItems(type, count))
+                return false;
+            m_totalCount -= count;
+            count = 0;
+        }
+    }
+    m_totalCount = 0;
+    return true;
+}
+
+entity_type CInventory::randomItem(std::mt19937 &rng)
+{
+    std::vector<entity_type> available;
+    for (auto &[type, count] : m_items)
+    {
+        if (count > 0)
+            available.push_back(type);
+    }
+    std::uniform_int_distribution<int> dist(0, available.size() - 1);
+    return available[dist(rng)];
 }
 
 CStats::CStats(int hp, int str, int spd) : hitPoints(hp), strength(str), speed(spd)

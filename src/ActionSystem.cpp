@@ -39,10 +39,11 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 state = STATE::walking_to;
                 if (m_movement.nextToDestination(e))
                 {
+                    inventory.transferTo(campInv);
                     EngineLog::cookedFood(tick, e->id());
                     ++feats.mealsCooked;
                     ++statistics.totalMealsCooked;
-                    inventory.adjustItems(raw_meat, -1);
+                    campInv.adjustItems(raw_meat, -1);
                     campInv.adjustItems(meal, 1);
                     e->remove<CDestination>();
                     useNoticeBoard(em, knowledge);
@@ -53,6 +54,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 state = STATE::walking_to;
                 if (m_movement.nextToDestination(e))
                 {
+                    inventory.transferTo(campInv);
                     EngineLog::pickedUpMeal(tick, e->id());
                     campInv.adjustItems(meal, -1);
                     inventory.adjustItems(meal, 1);
@@ -66,23 +68,35 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 if (m_movement.nextToDestination(e))
                 {
                     EngineLog::refueled(tick, e->id());
-                    inventory.adjustItems(wood, -1);
-                    campInv.adjustItems(wood, 1);
+                    inventory.transferTo(campInv);
                     e->remove<CDestination>();
                     useNoticeBoard(em, knowledge);
                 }
                 break;
             case GatherFood:
-                gatherLoot(tick, e, knowledge.m_closest_food, raw_meat, statistics);
+                gatherLoot(tick, rng, e, knowledge.m_closest_food, raw_meat, statistics);
                 break;
             case PickupWood:
-                gatherLoot(tick, e, knowledge.m_closest_food, wood, statistics);
+                gatherLoot(tick, rng, e, knowledge.m_closest_wood, wood, statistics);
                 break;
             case PickupMeal:
-                gatherLoot(tick, e, knowledge.m_closest_meal, meal, statistics);
+                gatherLoot(tick, rng, e, knowledge.m_closest_meal, meal, statistics);
+                break;
+            case PickupLoot:
+                gatherLoot(tick, rng, e, knowledge.m_closest_loot, empty, statistics);
                 break;
             case CutTree:
                 gatherResource(tick, e, knowledge.m_closest_tree, wood, statistics);
+                break;
+            case TransferToCampfire:
+                e->add<CDestination>(knowledge.m_campfire);
+                state = STATE::walking_to;
+                if (m_movement.nextToDestination(e))
+                {
+                    inventory.transferTo(campInv);
+                    e->remove<CDestination>();
+                    useNoticeBoard(em, knowledge);
+                }
                 break;
             case ButcherDeer:
                 e->add<CDestination>(knowledge.m_closest_deer_corpse.value());
@@ -96,12 +110,14 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                         dE->setAlive(false);
                         knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);
                         knowledge.m_closest_deer_corpse.reset();
-                        std::uniform_int_distribution<int> meatDist(1, 3);
-                        int meatAmount = meatDist(rng);
+                        std::uniform_int_distribution<int> lootDist(1, 3);
+                        int meatAmount = lootDist(rng);
+                        int peltAmount = lootDist(rng);
                         auto lootBag = em.addEntity(overflow_loot_bag);
                         lootBag->add<CPosition>(dest.cords);
                         lootBag->add<CInventory>(0);
-                        lootBag->get<CInventory>().adjustItems(raw_meat, meatDist(rng));
+                        lootBag->get<CInventory>().adjustItems(raw_meat, meatAmount);
+                        lootBag->get<CInventory>().adjustItems(pelt, peltAmount);
                         pendingDrops.push_back(lootBag);
                         EngineLog::deerButchered(tick, e->id());
                         e->remove<CDestination>();
@@ -227,7 +243,7 @@ void ActionSystem::gatherResource(int tick, std::shared_ptr<Entity> e, std::opti
     }
 }
 
-void ActionSystem::gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, Statistics &statistics)
+void ActionSystem::gatherLoot(int tick, std::mt19937 &rng, std::shared_ptr<Entity> e, std::optional<Cords> &knowledgeTarget, entity_type resourceType, Statistics &statistics)
 {
     auto &state = e->get<CState>();
     auto &hunger = e->get<CHunger>();
@@ -243,11 +259,23 @@ void ActionSystem::gatherLoot(int tick, std::shared_ptr<Entity> e, std::optional
         if (dE)
         {
             auto &lootBagInv = dE->get<CInventory>();
+            if (resourceType == empty)
+            {
+                resourceType = lootBagInv.randomItem(rng);
+            }
             if (lootBagInv.itemCount(resourceType) > 0)
             {
                 EngineLog::pickedUp(tick, e->id(), resourceType);
-                inventory.adjustItems(resourceType, 1);
-                lootBagInv.adjustItems(resourceType, -1);
+                // just pickup the whole lootbag
+                if (inventory.maxItems() - inventory.totalCount() >= lootBagInv.totalCount())
+                {
+                    lootBagInv.transferTo(inventory);
+                }
+                else
+                {
+                    inventory.adjustItems(resourceType, 1);
+                    lootBagInv.adjustItems(resourceType, -1);
+                }
                 if (lootBagInv.itemCount(resourceType) == 0)
                 {
                     knowledge.m_reported_positions[dest.cords] = Seen(empty, tick);

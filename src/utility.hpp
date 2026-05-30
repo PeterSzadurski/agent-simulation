@@ -36,7 +36,8 @@ enum entity_type
     tree,
     wood,
     deer_corpse,
-    overflow_loot_bag
+    overflow_loot_bag,
+    pelt
 };
 
 struct Statistics
@@ -60,7 +61,8 @@ inline const char *entityTypeToString(entity_type type)
         "tree",
         "wood",
         "deer corpse",
-        "overflow loot bag"};
+        "overflow loot bag",
+        "pelt"};
     return names[static_cast<int>(type)];
 };
 

@@ -144,7 +144,7 @@ int DecisionSystem::scoreEatGrass(const EntityState &es)
 
 int DecisionSystem::scoreHuntDeer(const EntityState &es)
 {
-    if (es.hasKnowledgeDeer && !es.hasRawMeat)
+    if (es.hasKnowledgeDeer && !es.hasRawMeat && !es.hasKnowledgeRawMeat)
     {
         return 78;
     }
@@ -162,9 +162,9 @@ int DecisionSystem::scoreButcherDeer(const EntityState &es)
 
 int DecisionSystem::scorePickupLoot(const EntityState &es)
 {
-    if (es.hasKnowledgeLoot && es.hasInventorySpace && !es.isHungry)
+    if (es.hasKnowledgeLoot && es.hasInventorySpace)
     {
-        return 25;
+        return 75;
     }
     return 0;
 }

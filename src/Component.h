@@ -5,8 +5,10 @@
 #include <unordered_map>
 #include <memory>
 #include <vector>
+#include <random>
 
 class Entity;
+class mt19937;
 typedef std::pair<entity_type, Cords> EntityPos;
 
 class Component
@@ -120,6 +122,8 @@ public:
     const int itemCount(entity_type e_type);
 
     bool adjustItems(entity_type e_type, int value);
+    bool transferTo(CInventory &other);
+    entity_type randomItem(std::mt19937 &rng);
 };
 
 struct CTarget : public Component
