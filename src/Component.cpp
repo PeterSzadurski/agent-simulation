@@ -171,7 +171,7 @@ void CStats::setMaxHitPoints(int maxHitPoints)
     m_maxHitPoints = maxHitPoints;
 }
 
-CExperience::CExperience(float rate, int hpCap, int strCap, int spdCap) : m_rate(rate), m_hpCap(hpCap), m_strCap(strCap), m_spdCap(spdCap)
+CExperience::CExperience(float fastRate, float slowRate, int hpCap, int strCap, int spdCap) : m_fastRate(fastRate), m_slowRate(slowRate), m_hpCap(hpCap), m_strCap(strCap), m_spdCap(spdCap)
 {
     exists = true;
     hpExp = 0.f;
@@ -194,9 +194,13 @@ const int CExperience::spdCap()
     return m_spdCap;
 }
 
-const float CExperience::rate()
+const float CExperience::fastRate()
 {
-    return m_rate;
+    return m_fastRate;
+}
+const float CExperience::slowRate()
+{
+    return m_slowRate;
 }
 
 CThreat::CThreat(const Cords &c)

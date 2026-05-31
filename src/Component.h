@@ -48,17 +48,19 @@ public:
 
 class CExperience : public Component
 {
-    float m_rate = 0.f;
+    float m_fastRate = 0.f;
+    float m_slowRate = 0.f;
     int m_hpCap, m_strCap, m_spdCap = 0;
 
 public:
     CExperience() = default;
-    CExperience(float rate, int hpCap, int strCap, int spdCap);
+    CExperience(float fastRate, float slowRate, int hpCap, int strCap, int spdCap);
     float hpExp, strExp, spdExp;
     const int hpCap();
     const int strCap();
     const int spdCap();
-    const float rate();
+    const float fastRate();
+    const float slowRate();
 };
 
 class CDecay : public Component

@@ -181,7 +181,7 @@ void Engine::spawnNpc()
     npc->add<CKnowledge>(m_width, m_height);
     npc->add<CInventory>(10);
     npc->add<CStats>(randRange(5, 15), randRange(3, 15), randRange(1, 5));
-    npc->add<CExperience>(5.f, randRange(15, 50), randRange(15, 45), 5);
+    npc->add<CExperience>(0.1f, 50.f, randRange(15, 50), randRange(15, 45), 5);
     npc->add<CFeats>(true);
     m_grid.placeRandom(npc, m_rng);
 }
