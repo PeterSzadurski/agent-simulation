@@ -8,6 +8,8 @@ export const ENTITY_COLORS: Record<number, string> = {
     6: '#cc3300', // raw_meat
     7: '#228b22', // tree
     8: '#d1784f', // wood
+    9: '#cc3300', // deer corpse
+    10: '#ffffff', // overflow lootbag
 };
 
 export const ENTITY_NAMES: Record<number, string> = {

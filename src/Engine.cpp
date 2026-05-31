@@ -230,17 +230,17 @@ void Engine::spawnSystem()
         }
         else if (roll <= 35)
         {
-            if (m_entities.getEntities(deer).size() < m_maxNpcs)
+            if (m_entities.getEntities(deer).size() < m_maxDeer)
                 spawnDeer();
         }
         else if (roll <= 75)
         {
-            if (m_entities.getEntities(grass).size() < m_maxNpcs)
+            if (m_entities.getEntities(grass).size() < m_maxGrass)
                 spawnGrass();
         }
         else
         {
-            if (m_entities.getEntities(tree).size() < m_maxNpcs)
+            if (m_entities.getEntities(tree).size() < m_maxTrees)
                 spawnTree();
         }
     }
@@ -341,6 +341,7 @@ EntityInspectData Engine::serializeEntity(std::shared_ptr<Entity> e)
         auto &inv = e->get<CInventory>();
         data.hasInventory = true;
         data.rawMeat = inv.itemCount(raw_meat);
+        data.pelt = inv.itemCount(pelt);
         data.meals = inv.itemCount(meal);
         data.wood = inv.itemCount(wood);
     }

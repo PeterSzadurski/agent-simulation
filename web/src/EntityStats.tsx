@@ -28,6 +28,7 @@ class EntityStats {
     rawMeat = 0;
     meals = 0;
     wood = 0;
+    pelt = 0;
 
     hasTarget = false;
     targetX = 0;

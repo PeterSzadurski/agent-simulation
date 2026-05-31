@@ -39,6 +39,7 @@ struct EntityInspectData
 
     bool hasInventory = false;
     int rawMeat = 0;
+    int pelt = 0;
     int meals = 0;
     int wood = 0;
 

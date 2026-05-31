@@ -413,11 +413,13 @@ void ActionSystem::combatOutcome(int const tick, EntityManager &em, std::shared_
     {
         EngineLog::entitySlain(tick, defender->type(), defender->id(),
                                attacker->type(), attacker->id());
-
-        auto loot = em.addEntity(overflow_loot_bag);
-        loot->add<CPosition>(attacker->get<CPosition>().cords);
-        loot->add<CInventory>(0);
-        loot->get<CInventory>() = attacker->get<CInventory>();
-        pendingDrops.push_back(loot);
+        if (attacker->get<CInventory>().totalCount() > 0)
+        {
+            auto loot = em.addEntity(overflow_loot_bag);
+            loot->add<CPosition>(attacker->get<CPosition>().cords);
+            loot->add<CInventory>(0);
+            loot->get<CInventory>() = attacker->get<CInventory>();
+            pendingDrops.push_back(loot);
+        }
     }
 }

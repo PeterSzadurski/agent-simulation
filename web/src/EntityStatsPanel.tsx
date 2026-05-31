@@ -53,6 +53,7 @@ const EntityStatsPanel = memo(function EntityStatsPanel({ entityStats }: Props) 
                     <AccordionDetails>
                         <Typography>Meals: {entityStats.meals}</Typography>
                         <Typography>Raw Meat: {entityStats.rawMeat}</Typography>
+                        <Typography>Pelt: {entityStats.pelt}</Typography>
                         <Typography>Wood: {entityStats.wood}</Typography>
                     </AccordionDetails>
                 </Accordion>
