@@ -6,7 +6,7 @@
 class EntityManager;
 using ComponentTuple = std::tuple<CPosition, CStats, CDecay, CHunger, CFuel,
                                   CLineOfSight, CState, CKnowledge, CDestination,
-                                  CInventory, CTarget, CThreat, CFeats, CExperience>;
+                                  CInventory, CTarget, CThreat, CFeats, CExperience, CRegenerate>;
 
 class Entity
 {

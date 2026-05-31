@@ -6,6 +6,7 @@ if(EMSCRIPTEN)
   add_executable(${PROJECT_NAME}
    src/DecaySystem.cpp
    src/Grid.cpp
+   src/RegenerateSystem.cpp
    src/Engine.cpp
    src/wasm_bindings.cpp
    src/KnowledgeSystem.cpp
@@ -32,6 +33,7 @@ else()
 add_executable(${PROJECT_NAME}
    src/DecaySystem.cpp
    src/Grid.cpp
+   src/RegenerateSystem.cpp
    src/Engine.cpp
    src/KnowledgeSystem.cpp
    src/ExperienceSystem.cpp

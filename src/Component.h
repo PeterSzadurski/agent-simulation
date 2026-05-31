@@ -88,6 +88,12 @@ public:
     using CDecay::CDecay;
 };
 
+class CRegenerate : public CDecay
+{
+public:
+    using CDecay::CDecay;
+};
+
 class CKnowledge : public Component
 {
 

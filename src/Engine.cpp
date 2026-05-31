@@ -8,6 +8,7 @@ void Engine::simulate()
     m_action.update(m_tick, m_entities, m_rng, m_pendingDrops, m_statistics);
     movementSystem();
     m_decay.update(m_tick, m_entities);
+    m_regenerate.update(m_tick, m_entities);
     cleanGrid();
     spawnSystem();
     featSystem();
@@ -22,6 +23,7 @@ Engine::Engine(uint32_t seed, int spawnRate, int width, int height) : m_rng(seed
                                                                       m_action(m_decision, m_movement,
                                                                                m_grid),
                                                                       m_experience(),
+                                                                      m_regenerate(),
                                                                       m_width(width), m_height(height), m_spawnRate(spawnRate)
 {
     spdlog_info("Init Engine");
@@ -173,6 +175,7 @@ void Engine::spawnNpc()
     auto npc = m_entities.addEntity(entity_type::npc);
     npc->add<CPosition>(0, 0);
     npc->add<CHunger>(0, 1000);
+    npc->add<CRegenerate>(0, 500);
     npc->add<CState>(STATE::wander);
     npc->add<CLineOfSight>(3);
     npc->add<CKnowledge>(m_width, m_height);
