@@ -6,6 +6,7 @@
 #include "DecisionSystem.h"
 #include "DecaySystem.h"
 #include "ActionSystem.h"
+#include "ExperienceSystem.h"
 
 typedef std::pair<int, int> NpcFeat;
 
@@ -76,6 +77,7 @@ class Engine
     DecisionSystem m_decision;
     DecaySystem m_decay;
     ActionSystem m_action;
+    ExperienceSystem m_experience;
     std::vector<std::shared_ptr<Entity>> m_pendingDrops;
     const int m_width, m_height;
     const int m_spawnRate = 500;

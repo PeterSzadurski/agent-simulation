@@ -353,6 +353,16 @@ void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Ent
         {
             entity_b->setAlive(false);
         }
+
+        // stat leveling
+        if (entity_a->has<CExperience>())
+        {
+            ++entity_a->get<CExperience>().strExp;
+        }
+        if (entity_b->has<CExperience>())
+        {
+            ++entity_b->get<CExperience>().hpExp;
+        }
     }
     else if (damA < damB)
     {
@@ -362,6 +372,16 @@ void ActionSystem::combat(int const tick, std::mt19937 &rng, std::shared_ptr<Ent
         if (stats_a.hitPoints <= 0)
         {
             entity_a->setAlive(false);
+        }
+
+        // stat leveling
+        if (entity_a->has<CExperience>())
+        {
+            ++entity_a->get<CExperience>().hpExp;
+        }
+        if (entity_b->has<CExperience>())
+        {
+            ++entity_b->get<CExperience>().strExp;
         }
     }
     else

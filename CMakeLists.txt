@@ -9,6 +9,7 @@ if(EMSCRIPTEN)
    src/Engine.cpp
    src/wasm_bindings.cpp
    src/KnowledgeSystem.cpp
+   src/ExperienceSystem.cpp
    src/MovementSystem.cpp
    src/DecisionSystem.cpp
    src/ActionSystem.cpp
@@ -33,6 +34,7 @@ add_executable(${PROJECT_NAME}
    src/Grid.cpp
    src/Engine.cpp
    src/KnowledgeSystem.cpp
+   src/ExperienceSystem.cpp
    src/MovementSystem.cpp
    src/DecisionSystem.cpp
    src/ActionSystem.cpp

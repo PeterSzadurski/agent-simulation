@@ -131,4 +131,9 @@ namespace EngineLog
         spdlog_info("{} total meals consumed.", stats.totalMealsEaten);
         spdlog_info("{} total trees chopped.", stats.totalTreesChopped);
     }
+
+    inline void levelUp(int tick, size_t id, int stat, const std::string &statName)
+    {
+        spdlog_info("[Tick: {:08d}] ID:{:08d} raised {} from {} to {}.", tick, id, statName, stat - 1, stat);
+    }
 }

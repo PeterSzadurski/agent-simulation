@@ -34,11 +34,31 @@ struct CDestination : public Component
     CDestination(const Cords &c);
 };
 
-struct CStats : public Component
+class CStats : public Component
 {
-    int hitPoints, strength, speed = 1;
+    int m_maxHitPoints = 1;
+
+public:
+    int hitPoints, strength, speed;
+    const int maxHitPoints();
+    void setMaxHitPoints(int maxHitPoints);
     CStats() = default;
     CStats(int hp, int str, int spd);
+};
+
+class CExperience : public Component
+{
+    float m_rate = 0.f;
+    int m_hpCap, m_strCap, m_spdCap = 0;
+
+public:
+    CExperience() = default;
+    CExperience(float rate, int hpCap, int strCap, int spdCap);
+    float hpExp, strExp, spdExp;
+    const int hpCap();
+    const int strCap();
+    const int spdCap();
+    const float rate();
 };
 
 class CDecay : public Component

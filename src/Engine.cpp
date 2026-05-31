@@ -11,6 +11,7 @@ void Engine::simulate()
     cleanGrid();
     spawnSystem();
     featSystem();
+    m_experience.update(m_tick, m_entities, m_statistics);
     m_entities.update();
     m_tick++;
 }
@@ -20,6 +21,7 @@ Engine::Engine(uint32_t seed, int spawnRate, int width, int height) : m_rng(seed
                                                                       m_movement(m_grid), m_decision(), m_decay(),
                                                                       m_action(m_decision, m_movement,
                                                                                m_grid),
+                                                                      m_experience(),
                                                                       m_width(width), m_height(height), m_spawnRate(spawnRate)
 {
     spdlog_info("Init Engine");
@@ -104,6 +106,10 @@ void Engine::movementSystem()
             }
             if (moved)
             {
+                if (e->has<CExperience>())
+                {
+                    ++e->get<CExperience>().spdExp;
+                }
                 //   spdlog_info("[Tick: {:08d}] ID:{:08d} moved to ({:02d}, {:02d})", m_tick, e->id(), pos.cords.x, pos.cords.y);
             }
         }
@@ -172,6 +178,7 @@ void Engine::spawnNpc()
     npc->add<CKnowledge>(m_width, m_height);
     npc->add<CInventory>(10);
     npc->add<CStats>(randRange(5, 15), randRange(3, 15), randRange(1, 5));
+    npc->add<CExperience>(5.f, randRange(15, 50), randRange(15, 45), 5);
     npc->add<CFeats>(true);
     m_grid.placeRandom(npc, m_rng);
 }

@@ -156,9 +156,47 @@ entity_type CInventory::randomItem(std::mt19937 &rng)
     return available[dist(rng)];
 }
 
-CStats::CStats(int hp, int str, int spd) : hitPoints(hp), strength(str), speed(spd)
+CStats::CStats(int hp, int str, int spd) : hitPoints(hp), strength(str), speed(spd), m_maxHitPoints(hp)
 {
     exists = true;
+}
+
+const int CStats::maxHitPoints()
+{
+    return m_maxHitPoints;
+}
+
+void CStats::setMaxHitPoints(int maxHitPoints)
+{
+    m_maxHitPoints = maxHitPoints;
+}
+
+CExperience::CExperience(float rate, int hpCap, int strCap, int spdCap) : m_rate(rate), m_hpCap(hpCap), m_strCap(strCap), m_spdCap(spdCap)
+{
+    exists = true;
+    hpExp = 0.f;
+    strExp = 0.f;
+    spdExp = 0.f;
+}
+
+const int CExperience::hpCap()
+{
+    return m_hpCap;
+}
+
+const int CExperience::strCap()
+{
+    return m_strCap;
+}
+
+const int CExperience::spdCap()
+{
+    return m_spdCap;
+}
+
+const float CExperience::rate()
+{
+    return m_rate;
 }
 
 CThreat::CThreat(const Cords &c)
