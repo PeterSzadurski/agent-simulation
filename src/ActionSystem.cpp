@@ -60,6 +60,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     e->remove<CDestination>();
                     m_campfire.useNoticeBoard(em, knowledge);
                     m_campfire.pushToCampfire(e);
+                    state = STATE::idle;
                 }
                 break;
             case PickupCampMeal:
@@ -74,6 +75,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     e->remove<CDestination>();
                     m_campfire.useNoticeBoard(em, knowledge);
                     m_campfire.pushToCampfire(e);
+                    state = STATE::idle;
                 }
                 break;
             case RefuelCampfire:
@@ -86,6 +88,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     e->remove<CDestination>();
                     m_campfire.useNoticeBoard(em, knowledge);
                     m_campfire.pushToCampfire(e);
+                    state = STATE::idle;
                 }
                 break;
             case GatherFood:
@@ -112,6 +115,7 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     e->remove<CDestination>();
                     m_campfire.useNoticeBoard(em, knowledge);
                     m_campfire.pushToCampfire(e);
+                    state = STATE::idle;
                 }
                 break;
             case ButcherDeer:

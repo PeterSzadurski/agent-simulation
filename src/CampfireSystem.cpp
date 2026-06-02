@@ -39,7 +39,7 @@ void CampfireSystem::assignLeader(const int tick)
                 }
             }
         }
-        leader->get<CRole>() = ROLE::Leader;
+        leader->get<CRole>().role = ROLE::Leader;
         if (!m_leader.has_value() || m_leader.value()->id() != leader->id())
         {
             EngineLog::promotionLeader(tick, leader->id());
