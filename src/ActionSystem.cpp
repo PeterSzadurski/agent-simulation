@@ -3,7 +3,7 @@
 
 ActionSystem::ActionSystem(DecisionSystem &decision,
                            MovementSystem &movement,
-                           Grid &grid) : m_decision(decision), m_movement(movement), m_grid(grid)
+                           Grid &grid, CampfireSystem &campfire) : m_decision(decision), m_movement(movement), m_grid(grid), m_campfire(campfire)
 {
 }
 
@@ -23,9 +23,21 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
             auto &knowledge = e->get<CKnowledge>();
             auto &pos = e->get<CPosition>();
             auto &feats = e->get<CFeats>();
+            auto &role = e->get<CRole>();
 
+            Action chosenAction;
             EntityState es = EntityState(e, campfireEntity);
-            switch (m_decision.chooseNpcAction(es))
+
+            if (role.role == ROLE::Common)
+            {
+                chosenAction = m_decision.chooseNpcAction(es);
+            }
+            else if (role.role == ROLE::Leader)
+            {
+                chosenAction = m_decision.chooseNpcLeaderAction(es);
+            }
+
+            switch (chosenAction)
             {
             case Eat:
                 hunger.reset();
@@ -46,7 +58,8 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     campInv.adjustItems(raw_meat, -1);
                     campInv.adjustItems(meal, 1);
                     e->remove<CDestination>();
-                    useNoticeBoard(em, knowledge);
+                    m_campfire.useNoticeBoard(em, knowledge);
+                    m_campfire.pushToCampfire(e);
                 }
                 break;
             case PickupCampMeal:
@@ -59,7 +72,8 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     campInv.adjustItems(meal, -1);
                     inventory.adjustItems(meal, 1);
                     e->remove<CDestination>();
-                    useNoticeBoard(em, knowledge);
+                    m_campfire.useNoticeBoard(em, knowledge);
+                    m_campfire.pushToCampfire(e);
                 }
                 break;
             case RefuelCampfire:
@@ -70,7 +84,8 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                     EngineLog::refueled(tick, e->id());
                     inventory.transferTo(campInv);
                     e->remove<CDestination>();
-                    useNoticeBoard(em, knowledge);
+                    m_campfire.useNoticeBoard(em, knowledge);
+                    m_campfire.pushToCampfire(e);
                 }
                 break;
             case GatherFood:
@@ -95,7 +110,8 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                 {
                     inventory.transferTo(campInv);
                     e->remove<CDestination>();
-                    useNoticeBoard(em, knowledge);
+                    m_campfire.useNoticeBoard(em, knowledge);
+                    m_campfire.pushToCampfire(e);
                 }
                 break;
             case ButcherDeer:
@@ -159,6 +175,9 @@ void ActionSystem::update(const int tick, EntityManager &em, std::mt19937 &rng, 
                         knowledge.m_closest_deer.reset();
                     }
                 }
+                break;
+            case Idle:
+                state = STATE::idle;
                 break;
             default:
                 e->remove<CDestination>();
@@ -293,43 +312,6 @@ void ActionSystem::gatherLoot(int tick, std::mt19937 &rng, std::shared_ptr<Entit
         }
 
         e->remove<CDestination>();
-    }
-}
-
-void ActionSystem::useNoticeBoard(EntityManager &em, CKnowledge &knowledge)
-{
-    auto &campKnowledge = em.getEntities(campfire).front()->get<CKnowledge>();
-
-    // higher tick overrides
-    auto mergeMaps = [](std::unordered_map<Cords, Seen> &dest,
-                        const std::unordered_map<Cords, Seen> &src)
-    {
-        for (const auto &[pos, seen] : src)
-        {
-            auto it = dest.find(pos);
-            if (it == dest.end() || it->second.tick < seen.tick)
-            {
-                dest[pos] = seen; // Add new or update if newer
-            }
-        }
-    };
-    mergeMaps(campKnowledge.m_reported_positions, knowledge.m_reported_positions);
-    mergeMaps(knowledge.m_reported_positions, campKnowledge.m_reported_positions);
-
-    for (auto it = knowledge.m_reported_positions.begin(); it != knowledge.m_reported_positions.end();)
-    {
-        if (it->second.type == entity_type::empty)
-            it = knowledge.m_reported_positions.erase(it);
-        else
-            ++it;
-    }
-
-    for (auto it = campKnowledge.m_reported_positions.begin(); it != campKnowledge.m_reported_positions.end();)
-    {
-        if (it->second.type == entity_type::empty)
-            it = campKnowledge.m_reported_positions.erase(it);
-        else
-            ++it;
     }
 }
 

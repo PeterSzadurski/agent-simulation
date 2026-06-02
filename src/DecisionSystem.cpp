@@ -209,3 +209,14 @@ Action DecisionSystem::chooseDeerAction(const EntityState &es)
                             { return a.second < b.second; })
         ->first;
 }
+
+Action DecisionSystem::chooseNpcLeaderAction(const EntityState &es)
+{
+    std::vector<std::pair<Action, int>> scores = {
+        {Eat, scoreEat(es)},
+        {PickupCampMeal, scorePickupCampMeal(es)},
+        {Action::Idle, 1}};
+    return std::max_element(scores.begin(), scores.end(), [](auto &a, auto &b)
+                            { return a.second < b.second; })
+        ->first;
+}

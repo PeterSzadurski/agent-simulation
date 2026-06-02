@@ -10,6 +10,7 @@ if(EMSCRIPTEN)
    src/Engine.cpp
    src/wasm_bindings.cpp
    src/KnowledgeSystem.cpp
+   src/CampfireSystem.cpp
    src/ExperienceSystem.cpp
    src/MovementSystem.cpp
    src/DecisionSystem.cpp
@@ -36,6 +37,7 @@ add_executable(${PROJECT_NAME}
    src/RegenerateSystem.cpp
    src/Engine.cpp
    src/KnowledgeSystem.cpp
+   src/CampfireSystem.cpp
    src/ExperienceSystem.cpp
    src/MovementSystem.cpp
    src/DecisionSystem.cpp

@@ -8,6 +8,7 @@
 #include "ActionSystem.h"
 #include "ExperienceSystem.h"
 #include "RegenerateSystem.h"
+#include "CampfireSystem.h"
 
 typedef std::pair<int, int> NpcFeat;
 
@@ -81,6 +82,7 @@ class Engine
     ActionSystem m_action;
     ExperienceSystem m_experience;
     RegenerateSystem m_regenerate;
+    CampfireSystem m_campfire;
     std::vector<std::shared_ptr<Entity>> m_pendingDrops;
     const int m_width, m_height;
     const int m_spawnRate = 500;

@@ -14,14 +14,16 @@ void Engine::simulate()
     featSystem();
     m_experience.update(m_tick, m_entities, m_statistics);
     m_entities.update();
+    m_campfire.update(m_tick);
     m_tick++;
 }
 
 Engine::Engine(uint32_t seed, int spawnRate, int width, int height) : m_rng(seed), m_tick(0),
                                                                       m_grid(width, height), m_knowledge(m_grid),
                                                                       m_movement(m_grid), m_decision(), m_decay(),
+                                                                      m_campfire(),
                                                                       m_action(m_decision, m_movement,
-                                                                               m_grid),
+                                                                               m_grid, m_campfire),
                                                                       m_experience(),
                                                                       m_regenerate(),
                                                                       m_width(width), m_height(height), m_spawnRate(spawnRate)
@@ -103,6 +105,8 @@ void Engine::movementSystem()
                 moved = m_movement.moveAwayFrom(e, e->get<CThreat>().threatPos);
                 e->remove<CThreat>();
                 break;
+            case STATE::idle:
+                break;
             default:
                 break;
             }
@@ -183,6 +187,7 @@ void Engine::spawnNpc()
     npc->add<CStats>(randRange(5, 15), randRange(3, 15), randRange(1, 5));
     npc->add<CExperience>(0.1f, 50.f, randRange(15, 50), randRange(15, 45), 5);
     npc->add<CFeats>(true);
+    npc->add<CRole>(ROLE::Common);
     m_grid.placeRandom(npc, m_rng);
 }
 

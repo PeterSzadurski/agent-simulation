@@ -40,6 +40,14 @@ enum entity_type
     pelt
 };
 
+enum class ROLE
+{
+    Common,
+    Leader,
+    Merchant,
+    Bandit
+};
+
 struct Statistics
 {
     int totalDeersSlain = 0;

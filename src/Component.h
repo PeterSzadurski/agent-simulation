@@ -177,3 +177,10 @@ struct CFeats : public Component
     CFeats() = default;
     CFeats(bool exists);
 };
+
+struct CRole : public Component
+{
+    ROLE role;
+    CRole() = default;
+    CRole(ROLE role);
+};

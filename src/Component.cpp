@@ -213,3 +213,8 @@ CFeats::CFeats(bool exists)
 {
     this->exists = exists;
 }
+
+CRole::CRole(ROLE role) : role(role)
+{
+    exists = true;
+}

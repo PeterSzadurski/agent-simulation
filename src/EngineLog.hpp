@@ -136,4 +136,9 @@ namespace EngineLog
     {
         spdlog_info("[Tick: {:08d}] ID:{:08d} raised {} from {} to {}.", tick, id, statName, stat - 1, stat);
     }
+
+    inline void promotionLeader(int tick, size_t id)
+    {
+        spdlog_info("[Tick: {:08d}] ID:{:08d} was promoted to Leader.", tick, id);
+    }
 }

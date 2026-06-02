@@ -18,6 +18,7 @@ enum Action
     PickupMeal,
     PickupWood,
     PickupLoot,
+    Idle
 };
 
 struct EntityState
@@ -64,5 +65,6 @@ class DecisionSystem
 public:
     DecisionSystem();
     Action chooseNpcAction(const EntityState &es);
+    Action chooseNpcLeaderAction(const EntityState &es);
     Action chooseDeerAction(const EntityState &es);
 };
